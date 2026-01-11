@@ -1,0 +1,130 @@
+version: "3.8"
+
+services:
+  scylla-node1:
+    image: scylladb/scylla:5.2
+    container_name: scylla-node1
+    command: --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
+    restart: always
+    ports:
+      - "2002:9042"
+    networks:
+      - golink-net
+
+  # scylla-node2:
+  #   image: scylladb/scylla:5.2
+  #   container_name: scylla-node2
+  #   command: --smp 1 --memory 750M --overprovisioned 1 --seeds "scylla-node1" --api-address 0.0.0.0
+  #   restart: always
+  #   depends_on:
+  #     - scylla-node1
+  #   ports:
+  #     - "2003:9042"
+  #   networks:
+  #     - golink-net
+
+  # scylla-node3:
+  #   image: scylladb/scylla:5.2
+  #   container_name: scylla-node3
+  #   command: --smp 1 --memory 750M --overprovisioned 1 --seeds "scylla-node1" --api-address 0.0.0.0
+  #   restart: always
+  #   depends_on:
+  #     - scylla-node1
+  #   ports:
+  #     - "2004:9042"
+  #   networks:
+  #     - golink-net
+
+  redis-node1:
+    image: redis:7-alpine
+    container_name: redis-node1
+    command: ["redis-server", "--port", "6379", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+    ports:
+      - "2005:6379"
+    networks:
+      - golink-net
+
+  # redis-node2:
+  #   image: redis:7-alpine
+  #   container_name: redis-node2
+  #   command: ["redis-server", "--port", "6379", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+  #   ports:
+  #     - "2006:6379"
+  #   networks:
+  #     - golink-net
+
+  # redis-node3:
+  #   image: redis:7-alpine
+  #   container_name: redis-node3
+  #   command: ["redis-server", "--port", "6379", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes"]
+  #   ports:
+  #     - "2007:6379"
+  #   networks:
+  #     - golink-net
+
+  # redis-cluster-init:
+  #   image: redis:7-alpine
+  #   container_name: redis-cluster-init
+  #   depends_on:
+  #     - redis-node1
+  #     - redis-node2
+  #     - redis-node3
+  #   command: >
+  #     sh -c "sleep 5 && 
+  #            echo 'yes' | redis-cli --cluster create redis-node1:6379 redis-node2:6379 redis-node3:6379 --cluster-replicas 0"
+  #   networks:
+  #     - golink-net
+
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: golink-kafka
+    ports:
+      - "2008:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@golink-kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://golink-kafka:9092,EXTERNAL://localhost:2008
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    networks:
+      - golink-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: golink-kafka-ui
+    ports:
+      - "2009:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: golink-kafka:9092
+    depends_on:
+      - kafka
+    networks:
+      - golink-net
+
+  debezium:
+    build:
+      context: .
+      dockerfile: Debezium/Dockerfile
+    container_name: golink-debezium
+    ports:
+      - "2010:8083"
+    environment:
+      - BOOTSTRAP_SERVERS=golink-kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+    depends_on:
+      - kafka
+    networks:
+      - golink-net
+
+networks:
+  golink-net:
+    driver: bridge
