@@ -28,9 +28,7 @@ func NewRouterGroup(
 
 // registerRoutes registers all routes
 func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
-	v1 := r.Group("/api/v1")
-
-	links := v1.Group("/links")
+	links := r.Group("/links")
 	{
 		links.POST("", handler.Wrap(rg.LinkHandler.Create))
 	}
