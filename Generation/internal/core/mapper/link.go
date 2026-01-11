@@ -3,8 +3,6 @@ package mapper
 import (
 	"time"
 
-	"go-link/common/pkg/database/widecolumn"
-
 	"go-link/generation/internal/constant"
 	"go-link/generation/internal/core/dto"
 	"go-link/generation/internal/core/entity"
@@ -13,10 +11,8 @@ import (
 func ToLinkEntityFromReq(req *dto.CreateLinkRequest) *entity.Link {
 	return &entity.Link{
 		OriginalURL: req.OriginalURL,
-		BaseModel: &widecolumn.BaseModel[string]{
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 }
 

@@ -7,6 +7,8 @@ import (
 func Run() error {
 	LoadConfig()
 	SetupLogger()
+	SetupTimer()
+	SetupRedis()
 	SetupWideColumn()
 	di.SetupDependencies()
 	http := NewHTTPServer()
