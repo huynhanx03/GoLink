@@ -9,15 +9,16 @@ type Config struct {
 	Elasticsearch Elasticsearch `mapstructure:"elasticsearch"`
 	WideColumn    WideColumn    `mapstructure:"wide_column"`
 	Database      Database      `mapstructure:"database"`
+	SnowflakeNode SnowflakeNode `mapstructure:"snowflake_node"`
 }
 
 // WideColumn is the configuration for Wide Column databases (Cassandra/ScyllaDB)
 type WideColumn struct {
 	Hosts    []string `mapstructure:"hosts"`
-	Port     int      `mapstructure:"port"`
 	Keyspace string   `mapstructure:"keyspace"`
 	Username string   `mapstructure:"username"`
 	Password string   `mapstructure:"password"`
+	Port     int      `mapstructure:"port"`
 	Timeout  int      `mapstructure:"timeout"`
 	Retries  int      `mapstructure:"retries"`
 }
@@ -67,19 +68,19 @@ type Logger struct {
 
 // Redis is the configuration for Redis
 type Redis struct {
-	Host            string `mapstructure:"host"`
-	Password        string `mapstructure:"password"`
-	Port            int    `mapstructure:"port"`
-	Database        int    `mapstructure:"database"`
-	PoolSize        int    `mapstructure:"pool_size"`
-	MinIdleConns    int    `mapstructure:"min_idle_conns"`
-	PoolTimeout     int    `mapstructure:"pool_timeout"`
-	DialTimeout     int    `mapstructure:"dial_timeout"`
-	ReadTimeout     int    `mapstructure:"read_timeout"`
-	WriteTimeout    int    `mapstructure:"write_timeout"`
-	MaxRetries      int    `mapstructure:"max_retries"`
-	MaxRetryBackoff int    `mapstructure:"max_retry_backoff"`
-	MinRetryBackoff int    `mapstructure:"min_retry_backoff"`
+	Addrs           []string `mapstructure:"addrs"`
+	MasterName      string   `mapstructure:"master_name"`
+	Password        string   `mapstructure:"password"`
+	Database        int      `mapstructure:"database"`
+	PoolSize        int      `mapstructure:"pool_size"`
+	MinIdleConns    int      `mapstructure:"min_idle_conns"`
+	PoolTimeout     int      `mapstructure:"pool_timeout"`
+	DialTimeout     int      `mapstructure:"dial_timeout"`
+	ReadTimeout     int      `mapstructure:"read_timeout"`
+	WriteTimeout    int      `mapstructure:"write_timeout"`
+	MaxRetries      int      `mapstructure:"max_retries"`
+	MaxRetryBackoff int      `mapstructure:"max_retry_backoff"`
+	MinRetryBackoff int      `mapstructure:"min_retry_backoff"`
 }
 
 // Kafka is the configuration for Kafka
@@ -101,4 +102,15 @@ type Elasticsearch struct {
 	Addresses []string `mapstructure:"addresses"`
 	Username  string   `mapstructure:"username"`
 	Password  string   `mapstructure:"password"`
+}
+
+type Snowflake struct {
+	Epoch int64 `mapstructure:"epoch"`
+	Node  uint8 `mapstructure:"node"`
+	Step  uint8 `mapstructure:"step"`
+}
+
+type SnowflakeNode struct {
+	Config   Snowflake
+	WorkerID int64 `mapstructure:"worker_id"`
 }

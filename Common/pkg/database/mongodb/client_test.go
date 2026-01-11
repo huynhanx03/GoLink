@@ -104,12 +104,12 @@ func TestClient_Integration(t *testing.T) {
 		testExists(t, ctx, repo)
 	})
 
-	t.Run("BatchCreate", func(t *testing.T) {
-		testBatchCreate(t, ctx, repo)
+	t.Run("CreateBatch", func(t *testing.T) {
+		testCreateBatch(t, ctx, repo)
 	})
 
-	t.Run("BatchDelete", func(t *testing.T) {
-		testBatchDelete(t, ctx, repo)
+	t.Run("DeleteBatch", func(t *testing.T) {
+		testDeleteBatch(t, ctx, repo)
 	})
 }
 
@@ -176,19 +176,19 @@ func testDelete(t *testing.T, ctx context.Context, repo *BaseRepository[TestMode
 	}
 }
 
-func testBatchDelete(t *testing.T, ctx context.Context, repo *BaseRepository[TestModel]) {
+func testDeleteBatch(t *testing.T, ctx context.Context, repo *BaseRepository[TestModel]) {
 	model1 := TestModel{BaseModel: NewBaseModel(), Name: "batch-delete-1", Value: 1}
 	model2 := TestModel{BaseModel: NewBaseModel(), Name: "batch-delete-2", Value: 2}
 
-	// BatchCreate expects []*T -> []*TestModel
+	// CreateBatch expects []*T -> []*TestModel
 	models := []*TestModel{&model1, &model2}
-	if err := repo.BatchCreate(ctx, models); err != nil {
+	if err := repo.CreateBatch(ctx, models); err != nil {
 		t.Fatalf("Failed to batch create: %v", err)
 	}
 
-	// Test BatchDelete
+	// Test DeleteBatch
 	ids := []primitive.ObjectID{model1.GetID(), model2.GetID()}
-	if err := repo.BatchDelete(ctx, ids); err != nil {
+	if err := repo.DeleteBatch(ctx, ids); err != nil {
 		t.Fatalf("Failed to batch delete: %v", err)
 	}
 
@@ -253,12 +253,12 @@ func testExists(t *testing.T, ctx context.Context, repo *BaseRepository[TestMode
 	}
 }
 
-func testBatchCreate(t *testing.T, ctx context.Context, repo *BaseRepository[TestModel]) {
+func testCreateBatch(t *testing.T, ctx context.Context, repo *BaseRepository[TestModel]) {
 	model1 := TestModel{BaseModel: NewBaseModel(), Name: "batch-create-1", Value: 1000}
 	model2 := TestModel{BaseModel: NewBaseModel(), Name: "batch-create-2", Value: 2000}
 
 	models := []*TestModel{&model1, &model2}
-	if err := repo.BatchCreate(ctx, models); err != nil {
+	if err := repo.CreateBatch(ctx, models); err != nil {
 		t.Fatalf("Failed to batch create: %v", err)
 	}
 

@@ -8,7 +8,7 @@ func New(config *settings.WideColumn) (*Client, error) {
 		config: config,
 	}
 
-	if err := client.connect(); err != nil {
+	if err := client.Connect(); err != nil {
 		return nil, err
 	}
 

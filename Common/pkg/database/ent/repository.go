@@ -188,8 +188,8 @@ func (r *BaseRepository[T, PT, ID]) Exists(ctx context.Context, id ID) (bool, er
 	return true, nil
 }
 
-// BatchCreate inserts multiple models.
-func (r *BaseRepository[T, PT, ID]) BatchCreate(ctx context.Context, models []*T) error {
+// CreateBatch inserts multiple models.
+func (r *BaseRepository[T, PT, ID]) CreateBatch(ctx context.Context, models []*T) error {
 	if len(models) == 0 {
 		return nil
 	}
@@ -239,8 +239,8 @@ func (r *BaseRepository[T, PT, ID]) BatchCreate(ctx context.Context, models []*T
 	return nil
 }
 
-// BatchDelete removes multiple models by ID.
-func (r *BaseRepository[T, PT, ID]) BatchDelete(ctx context.Context, ids []ID) error {
+// DeleteBatch removes multiple models by ID.
+func (r *BaseRepository[T, PT, ID]) DeleteBatch(ctx context.Context, ids []ID) error {
 	for _, id := range ids {
 		if err := r.Delete(ctx, id); err != nil {
 			if IsNotFound(err) {

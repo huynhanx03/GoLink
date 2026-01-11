@@ -27,7 +27,7 @@ const (
 )
 
 type RedisEngine struct {
-	client  *redisV9.Client
+	client  redisV9.UniversalClient
 	config  *settings.Redis
 	rwMutex sync.Mutex
 }
@@ -38,14 +38,9 @@ var _ cache.CacheEngine = (*RedisEngine)(nil)
 func (r *RedisEngine) connect() error {
 	r.setDefaultConfig()
 
-	// Build address
-	addr := r.config.Host
-	if r.config.Port > 0 {
-		addr = fmt.Sprintf("%s:%d", addr, r.config.Port)
-	}
-
-	r.client = redisV9.NewClient(&redisV9.Options{
-		Addr:            addr,
+	r.client = redisV9.NewUniversalClient(&redisV9.UniversalOptions{
+		Addrs:           r.config.Addrs,
+		MasterName:      r.config.MasterName,
 		Password:        r.config.Password,
 		DB:              r.config.Database,
 		PoolSize:        r.config.PoolSize,
@@ -124,6 +119,7 @@ func (r *RedisEngine) InvalidatePrefix(ctx context.Context, prefix string) error
 	r.rwMutex.Lock()
 	defer r.rwMutex.Unlock()
 
+	// Caution: Keys() can be slow in production, consider SCAN or maintaining a set of keys
 	val, err := r.client.Keys(ctx, prefix+"*").Result()
 	if err != nil {
 		return err
@@ -167,8 +163,8 @@ func (r *RedisEngine) BatchSet(ctx context.Context, values map[string]any, ttl t
 	return err
 }
 
-// BatchDelete removes multiple keys from the cache
-func (r *RedisEngine) BatchDelete(ctx context.Context, keys []string) error {
+// DeleteBatch removes multiple keys from the cache
+func (r *RedisEngine) DeleteBatch(ctx context.Context, keys []string) error {
 	return r.client.Del(ctx, keys...).Err()
 }
 
@@ -226,7 +222,7 @@ func (r *RedisEngine) Close() {
 }
 
 // Client returns the underlying redis client (Escape hatch)
-func (r *RedisEngine) Client() *redisV9.Client {
+func (r *RedisEngine) Client() redisV9.UniversalClient {
 	return r.client
 }
 

@@ -3,7 +3,6 @@ package widecolumn
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/gocql/gocql"
@@ -31,7 +30,7 @@ func NewBaseRepository[T Model](session *gocql.Session, dummy T) *BaseRepository
 
 // Create inserts a new model
 func (r *BaseRepository[T]) Create(ctx context.Context, model *T) error {
-	val := any(model).(T)
+	val := *model
 
 	cols := val.ColumnNames()
 	placeholders := make([]string, len(cols))
@@ -46,6 +45,26 @@ func (r *BaseRepository[T]) Create(ctx context.Context, model *T) error {
 	)
 
 	return r.session.Query(stmt, val.ColumnValues()...).WithContext(ctx).Exec()
+}
+
+// CreateWithTTL inserts a new model with a Time-To-Live (TTL)
+func (r *BaseRepository[T]) CreateWithTTL(ctx context.Context, model *T, ttl int) error {
+	val := *model
+
+	cols := val.ColumnNames()
+	placeholders := make([]string, len(cols))
+	for i := range cols {
+		placeholders[i] = "?"
+	}
+
+	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) USING TTL ?",
+		r.tableName,
+		strings.Join(cols, ", "),
+		strings.Join(placeholders, ", "),
+	)
+
+	args := append(val.ColumnValues(), ttl)
+	return r.session.Query(stmt, args...).WithContext(ctx).Exec()
 }
 
 // Update updates a model
@@ -70,7 +89,7 @@ func (r *BaseRepository[T]) Get(ctx context.Context, id any) (*T, error) {
 	}
 
 	var result T
-	if err := r.scanToStruct(row, &result); err != nil {
+	if err := defaultMapper.Bind(row, &result); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +111,7 @@ func (r *BaseRepository[T]) Find(ctx context.Context, opts *dto.QueryOptions) (*
 		}
 
 		var model T
-		if err := r.scanToStruct(row, &model); err != nil {
+		if err := defaultMapper.Bind(row, &model); err != nil {
 			continue
 		}
 		records = append(records, &model)
@@ -114,15 +133,15 @@ func (r *BaseRepository[T]) Exists(ctx context.Context, id any) (bool, error) {
 	return count > 0, nil
 }
 
-// BatchCreate inserts multiple models
-func (r *BaseRepository[T]) BatchCreate(ctx context.Context, models []*T) error {
+// CreateBatch inserts multiple models
+func (r *BaseRepository[T]) CreateBatch(ctx context.Context, models []*T) error {
 	if len(models) == 0 {
 		return nil
 	}
 
 	batch := r.session.NewBatch(gocql.LoggedBatch)
 	for _, model := range models {
-		val := any(model).(T)
+		val := *model
 		cols := val.ColumnNames()
 		placeholders := make([]string, len(cols))
 		for i := range cols {
@@ -140,8 +159,8 @@ func (r *BaseRepository[T]) BatchCreate(ctx context.Context, models []*T) error 
 	return r.session.ExecuteBatch(batch)
 }
 
-// BatchDelete removes multiple models by IDs
-func (r *BaseRepository[T]) BatchDelete(ctx context.Context, ids []any) error {
+// DeleteBatch removes multiple models by IDs
+func (r *BaseRepository[T]) DeleteBatch(ctx context.Context, ids []any) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -153,45 +172,4 @@ func (r *BaseRepository[T]) BatchDelete(ctx context.Context, ids []any) error {
 	}
 
 	return r.session.ExecuteBatch(batch)
-}
-
-func (r *BaseRepository[T]) scanToStruct(row map[string]any, target any) error {
-	val := reflect.ValueOf(target)
-	if val.Kind() != reflect.Ptr || val.IsNil() {
-		return fmt.Errorf("target must be a non-nil pointer")
-	}
-
-	elem := val.Elem()
-	if elem.Kind() != reflect.Struct {
-		return fmt.Errorf("target must point to a struct")
-	}
-
-	typ := elem.Type()
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		fieldName := strings.ToLower(field.Name)
-
-		tag := field.Tag.Get("json")
-		if tag != "" {
-			parts := strings.Split(tag, ",")
-			if parts[0] != "" {
-				fieldName = parts[0]
-			}
-		}
-
-		if val, ok := row[fieldName]; ok {
-			f := elem.Field(i)
-			if f.CanSet() {
-				v := reflect.ValueOf(val)
-				if v.IsValid() && v.Type().ConvertibleTo(f.Type()) {
-					f.Set(v.Convert(f.Type()))
-				} else if v.IsValid() && f.Kind() == reflect.Ptr && v.Type().ConvertibleTo(f.Type().Elem()) {
-					ptrVal := reflect.New(f.Type().Elem())
-					ptrVal.Elem().Set(v.Convert(f.Type().Elem()))
-					f.Set(ptrVal)
-				}
-			}
-		}
-	}
-	return nil
 }

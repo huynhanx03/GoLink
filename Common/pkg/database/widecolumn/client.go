@@ -17,12 +17,19 @@ const (
 
 // WideColumnClient defines the interface for Wide Column DB client operations
 type WideColumnClient interface {
-	connect() error
+	Connect() error
 	Close()
 	GetSession() *gocql.Session
 }
 
 var _ WideColumnClient = (*Client)(nil)
+
+// NewClient creates a new Client instance
+func NewClient(cfg *settings.WideColumn) *Client {
+	return &Client{
+		config: cfg,
+	}
+}
 
 // Client represents a Wide Column DB connection
 type Client struct {
@@ -30,8 +37,8 @@ type Client struct {
 	config  *settings.WideColumn
 }
 
-// connect creates a new Wide Column DB connection
-func (c *Client) connect() error {
+// Connect creates a new Wide Column DB connection
+func (c *Client) Connect() error {
 	c.setDefaultConfig()
 
 	cluster := gocql.NewCluster(c.config.Hosts...)
