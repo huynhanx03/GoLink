@@ -34,4 +34,5 @@ snowflake_node:
   config:
     epoch: 1767225600000
     node: 2
-    step: 9
+    step: 10
+    total_bits: 42

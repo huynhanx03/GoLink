@@ -105,9 +105,10 @@ type Elasticsearch struct {
 }
 
 type Snowflake struct {
-	Epoch int64 `mapstructure:"epoch"`
-	Node  uint8 `mapstructure:"node"`
-	Step  uint8 `mapstructure:"step"`
+	Epoch     int64 `mapstructure:"epoch"`
+	Node      uint8 `mapstructure:"node"`
+	Step      uint8 `mapstructure:"step"`
+	TotalBits uint8 `mapstructure:"total_bits"`
 }
 
 type SnowflakeNode struct {
