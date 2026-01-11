@@ -50,8 +50,8 @@ Utilizing **Twitter Snowflake** algorithm for unique ID generation **Optimal Con
 ## III. Capacity Estimates
 
 ### Benchmark
--   **Write Volume**: 1,000,000 links/day (~12 TPS).
--   **Read Volume**: 100,000,000 clicks/day (~1,200 RPS).
+-   **Write Volume**: 1,000,000 links/day (Avg ~12 TPS, **Peak ~60 TPS**).
+-   **Read Volume**: 100,000,000 clicks/day (Avg ~1,200 RPS, **Peak ~6,000 RPS**).
 -   **Data Size**: 0.5 KB average/record.
 
 ### ID Space
