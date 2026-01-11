@@ -1,0 +1,19 @@
+package infrastructure
+
+import (
+	"go-link/common/pkg/database/redis"
+	"go-link/generation/global"
+)
+
+func SetupRedis() {
+	config := global.Config.Redis
+
+	engine, err := redis.NewConnection(&config)
+
+	if err != nil {
+		global.Logger.Sugar().Fatalf("Failed to connect to Redis: %v", err)
+	}
+
+	global.Redis = engine
+	global.Logger.Sugar().Info("Connected to Redis successfully")
+}
