@@ -23,6 +23,10 @@ Utilizing **Twitter Snowflake** algorithm for unique ID generation **Optimal Con
 -   **Node**: `2` bits - Max Scale: **4 nodes**.
 -   **Step**: `10` bits - ID Generation Speed: **1,024 req/s/node** (Cluster Capacity: **~4,000 req/s**).
 
+### 1.1 Zero-Latency Short Code Pool
+-   **Strategy**: **Pre-generation** utilizing **MPMC Lock-free Queue**.
+-   **Capacity**: **120,000** codes, automatically refilled by background workers.
+
 ### 2. Database: ScyllaDB
 -   **Performance**: Write-Heavy Optimization (LSM Tree) - Extremely high write throughput, suitable for continuous short link generation.
 -   **Architecture**: Peer-to-Peer (Masterless) - No Single Point of Failure (SPOF).
@@ -102,16 +106,16 @@ make run-redirection
 ```
 
 ### 5. Usage
-API Gateway port **2222**.
+API Gateway port **8080**.
 
 **Create Short Link:**
 ```bash
-curl -X POST http://localhost:2222/generation/links \
+curl -X POST http://localhost:8080/generation/links \
   -H "Content-Type: application/json" \
   -d '{"original_url": "https://google.com"}'
 ```
 
 **Access Link:**
 ```bash
-curl -v http://localhost:2222/AbCdEfG
+curl -v http://localhost:8080/AbCdEfG
 ```

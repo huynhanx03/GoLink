@@ -14,6 +14,10 @@ type LinkCacheRepository interface {
 	Set(ctx context.Context, link *entity.Link) error
 }
 
+type ShortCodePool interface {
+	GetOrGenerate() string
+}
+
 type LinkService interface {
 	Create(ctx context.Context, req *dto.CreateLinkRequest) (*dto.LinkResponse, error)
 }
