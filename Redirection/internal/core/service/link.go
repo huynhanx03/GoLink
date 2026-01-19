@@ -53,7 +53,7 @@ func (s *linkService) GetOriginalURL(ctx context.Context, shortCode string) (str
 func (s *linkService) HandleLinkBatchChange(ctx context.Context, batch []*cdc.DebeziumPayload[entity.Link]) error {
 	var (
 		linksToCreate []*entity.Link
-		idsToDelete []string
+		idsToDelete   []string
 	)
 
 	for _, payload := range batch {
@@ -70,16 +70,16 @@ func (s *linkService) HandleLinkBatchChange(ctx context.Context, batch []*cdc.De
 	}
 
 	if len(linksToCreate) > 0 {
-		if err := s.linkRepo.CreateBatch(ctx, linksToCreate); err != nil {
+		if err := s.linkRepo.CreateBulk(ctx, linksToCreate); err != nil {
 			return apperr.Wrap(err, response.CodeInternalServer, "failed to batch save link", http.StatusInternalServerError)
 		}
 	}
 
 	if len(idsToDelete) > 0 {
-		if err := s.linkRepo.DeleteBatch(ctx, idsToDelete); err != nil {
+		if err := s.linkRepo.DeleteBulk(ctx, idsToDelete); err != nil {
 			return apperr.Wrap(err, response.CodeInternalServer, "failed to batch remove link", http.StatusInternalServerError)
 		}
-		if err := s.linkCache.DeleteBatch(ctx, idsToDelete); err != nil {
+		if err := s.linkCache.DeleteBulk(ctx, idsToDelete); err != nil {
 			return apperr.Wrap(err, response.CodeInternalServer, "failed to batch remove link", http.StatusInternalServerError)
 		}
 	}

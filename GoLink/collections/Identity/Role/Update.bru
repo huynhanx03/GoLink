@@ -1,0 +1,19 @@
+meta {
+  name: Update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/identity/roles/6
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "super_admin",
+    "level": -1,
+    "parent_id": 1
+  }
+}

@@ -1,0 +1,6 @@
+name: dev
+variables:
+  - name: api_gateway
+    value: localhost:8080
+  - name: base_url
+    value: http://localhost:8080

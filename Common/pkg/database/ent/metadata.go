@@ -16,16 +16,19 @@ type fieldInfo struct {
 }
 
 type entityMetadata struct {
-	Typ           reflect.Type
-	EntityName    string
-	ClientIndex   int
-	MethodCreate  int
-	MethodUpdate  int
-	MethodDelete  int
-	MethodGet     int
-	MethodQuery   int
-	MethodMapBulk int
-	Fields        []fieldInfo
+	Typ            reflect.Type
+	EntityName     string
+	ClientIndex    int
+	MethodCreate   int
+	MethodUpdate   int
+	MethodDelete   int
+	MethodGet      int
+	MethodQuery    int
+	MethodMapBulk  int
+	MethodTx       int
+	MethodCommit   int
+	MethodRollback int
+	Fields         []fieldInfo
 }
 
 func newEntityMetadata[T any, ID constraints.ID](client any) (*entityMetadata, error) {
@@ -57,28 +60,28 @@ func newEntityMetadata[T any, ID constraints.ID](client any) (*entityMetadata, e
 	specificClientVal := clientVal.Field(meta.ClientIndex)
 	specificClientTyp := specificClientVal.Type()
 
-	findMethodIndex := func(methodName string) (int, error) {
-		m, ok := specificClientTyp.MethodByName(methodName)
+	findMethodIndex := func(typ reflect.Type, methodName string) (int, error) {
+		m, ok := typ.MethodByName(methodName)
 		if !ok {
-			return -1, fmt.Errorf("method %s not found for entity %s", methodName, entityName)
+			return -1, fmt.Errorf("method %s not found for type %s", methodName, typ.Name())
 		}
 		return m.Index, nil
 	}
 
 	var err error
-	if meta.MethodCreate, err = findMethodIndex(MethodCreate); err != nil {
+	if meta.MethodCreate, err = findMethodIndex(specificClientTyp, MethodCreate); err != nil {
 		return nil, err
 	}
-	if meta.MethodUpdate, err = findMethodIndex(MethodUpdateOneID); err != nil {
+	if meta.MethodUpdate, err = findMethodIndex(specificClientTyp, MethodUpdateOneID); err != nil {
 		return nil, err
 	}
-	if meta.MethodDelete, err = findMethodIndex(MethodDeleteOneID); err != nil {
+	if meta.MethodDelete, err = findMethodIndex(specificClientTyp, MethodDeleteOneID); err != nil {
 		return nil, err
 	}
-	if meta.MethodGet, err = findMethodIndex(MethodGet); err != nil {
+	if meta.MethodGet, err = findMethodIndex(specificClientTyp, MethodGet); err != nil {
 		return nil, err
 	}
-	if meta.MethodQuery, err = findMethodIndex(MethodQuery); err != nil {
+	if meta.MethodQuery, err = findMethodIndex(specificClientTyp, MethodQuery); err != nil {
 		return nil, err
 	}
 
@@ -86,6 +89,27 @@ func newEntityMetadata[T any, ID constraints.ID](client any) (*entityMetadata, e
 		meta.MethodMapBulk = m.Index
 	} else {
 		meta.MethodMapBulk = -1
+	}
+
+	// Cache Tx methods
+	if meta.MethodTx, err = findMethodIndex(clientTyp, MethodTx); err != nil {
+		meta.MethodTx = -1
+	}
+
+	if meta.MethodTx != -1 {
+		txMethod, _ := clientTyp.MethodByName(MethodTx)
+		txType := txMethod.Type.Out(0) // *Tx
+		if txType.Kind() == reflect.Ptr {
+			if meta.MethodCommit, err = findMethodIndex(txType, MethodCommit); err != nil {
+				return nil, err
+			}
+			if meta.MethodRollback, err = findMethodIndex(txType, MethodRollback); err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		meta.MethodCommit = -1
+		meta.MethodRollback = -1
 	}
 
 	for i := 0; i < typ.NumField(); i++ {

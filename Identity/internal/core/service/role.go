@@ -1,0 +1,193 @@
+package service
+
+import (
+	"context"
+	"net/http"
+	"sort"
+
+	"go-link/common/pkg/common/apperr"
+	"go-link/common/pkg/common/http/response"
+	d "go-link/common/pkg/dto"
+
+	"go-link/identity/internal/core/dto"
+	"go-link/identity/internal/core/entity"
+	"go-link/identity/internal/core/mapper"
+	"go-link/identity/internal/ports"
+)
+
+type roleService struct {
+	roleRepo ports.RoleRepository
+}
+
+// NewRoleService creates a new RoleService instance.
+func NewRoleService(roleRepo ports.RoleRepository) ports.RoleService {
+	return &roleService{roleRepo: roleRepo}
+}
+
+// Find retrieves roles with pagination.
+func (s *roleService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*dto.RoleResponse], error) {
+	roles, err := s.roleRepo.Find(ctx, opts)
+	if err != nil {
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to find roles", http.StatusInternalServerError)
+	}
+
+	if roles.Records == nil {
+		return &d.Paginated[*dto.RoleResponse]{
+			Records:    &[]*dto.RoleResponse{},
+			Pagination: roles.Pagination,
+		}, nil
+	}
+
+	entities := *roles.Records
+	responses := make([]*dto.RoleResponse, len(entities))
+	for i, role := range entities {
+		responses[i] = mapper.ToRoleResponse(role)
+	}
+
+	return &d.Paginated[*dto.RoleResponse]{
+		Records:    &responses,
+		Pagination: roles.Pagination,
+	}, nil
+}
+
+// Get retrieves a role by ID.
+func (s *roleService) Get(ctx context.Context, id int) (*dto.RoleResponse, error) {
+	role, err := s.roleRepo.Get(ctx, id)
+	if err != nil {
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get role", http.StatusInternalServerError)
+	}
+	return mapper.ToRoleResponse(role), nil
+}
+
+// Create creates a new role.
+func (s *roleService) Create(ctx context.Context, req *dto.CreateRoleRequest) (*dto.RoleResponse, error) {
+	role := mapper.ToRoleEntityFromCreate(req)
+
+	if err := s.roleRepo.Create(ctx, role); err != nil {
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create role" + err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := s.rebuildTree(ctx); err != nil {
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+	}
+
+	return mapper.ToRoleResponse(role), nil
+}
+
+// Update updates an existing role.
+func (s *roleService) Update(ctx context.Context, id int, req *dto.UpdateRoleRequest) (*dto.RoleResponse, error) {
+	role, err := s.roleRepo.Get(ctx, id)
+	if err != nil {
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get role", http.StatusInternalServerError)
+	}
+
+	if req.Name != nil {
+		role.Name = *req.Name
+	}
+	if req.Level != nil {
+		role.Level = *req.Level
+	}
+
+	parentChanged := false
+	if req.ParentID != nil {
+		if role.ParentID != *req.ParentID {
+			if *req.ParentID == id {
+				return nil, apperr.New(response.CodeInvalidID, "cannot set parent to self", http.StatusBadRequest, nil)
+			}
+			role.ParentID = *req.ParentID
+			parentChanged = true
+		}
+	}
+
+	role.ID = id
+	if err := s.roleRepo.Update(ctx, role); err != nil {
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update role", http.StatusInternalServerError)
+	}
+
+	if parentChanged {
+		if err := s.rebuildTree(ctx); err != nil {
+			return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+		}
+	}
+
+	return mapper.ToRoleResponse(role), nil
+}
+
+// Delete removes a role by ID.
+func (s *roleService) Delete(ctx context.Context, id int) error {
+	exists, err := s.roleRepo.Exists(ctx, id)
+	if err != nil {
+		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check role exists", http.StatusInternalServerError)
+	}
+
+	if !exists {
+		return apperr.New(response.CodeNotFound, "role not found", http.StatusNotFound, nil)
+	}
+
+	if err := s.roleRepo.Delete(ctx, id); err != nil {
+		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete role", http.StatusInternalServerError)
+	}
+
+	if err := s.rebuildTree(ctx); err != nil {
+		return apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+// rebuildTree recalculates lft and rgt values for the entire role tree using DFS.
+func (s *roleService) rebuildTree(ctx context.Context) error {
+	roles, err := s.roleRepo.FindAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Build adjacency list
+	childrenMap := make(map[int][]*entity.Role)
+	var rootRoles []*entity.Role
+
+	// Separate roots from children
+	for _, role := range roles {
+		if role.ParentID == -1 {
+			rootRoles = append(rootRoles, role)
+		} else {
+			pid := role.ParentID
+			childrenMap[pid] = append(childrenMap[pid], role)
+		}
+	}
+
+	// Sort to ensure deterministic order
+	sort.Slice(rootRoles, func(i, j int) bool {
+		return rootRoles[i].ID < rootRoles[j].ID
+	})
+	for _, children := range childrenMap {
+		sort.Slice(children, func(i, j int) bool {
+			return children[i].ID < children[j].ID
+		})
+	}
+
+	var updates []*entity.Role
+	counter := 1
+
+	var dfs func(role *entity.Role)
+	dfs = func(role *entity.Role) {
+		role.Lft = counter
+		counter++
+
+		if children, exists := childrenMap[role.ID]; exists {
+			for _, child := range children {
+				dfs(child)
+			}
+		}
+
+		role.Rgt = counter
+		counter++
+		updates = append(updates, role)
+	}
+
+	for _, root := range rootRoles {
+		dfs(root)
+	}
+
+	return s.roleRepo.UpdateBulk(ctx, updates)
+}

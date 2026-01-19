@@ -42,7 +42,7 @@ type MPMC[T any] struct {
 
 	tail atomic.Uint64 // Tail position
 
-	_ [cacheLineSize]byte // Padding to prevent false sharing
+	// _ [cacheLineSize]byte // Padding to prevent false sharing
 }
 
 // NewMPMC creates a queue with capacity rounded up to power of 2.

@@ -18,10 +18,15 @@ run-generation:
 run-redirection:
 	cd Redirection && go run cmd/server/main.go
 
+.PHONY: run-identity
+run-identity:
+	cd Identity && go run cmd/server/main.go
+
 .PHONY: init-db
 init-db:
 	docker exec -i scylla-node1 cqlsh < Generation/scripts/init_db.cql
 	docker exec -i scylla-node1 cqlsh < Redirection/scripts/init_db.cql
+	docker exec -i golink-postgres psql -U admin -d identity < Identity/scripts/seed.sql
 
 .PHONY: init-cdc
 init-cdc:
@@ -31,8 +36,3 @@ init-cdc:
 init-all:
 	make init-db
 	make init-cdc
-
-.PHONY: run-all
-run-all:
-	make run-generation
-	make run-redirection

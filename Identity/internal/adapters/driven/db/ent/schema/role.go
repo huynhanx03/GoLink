@@ -1,0 +1,50 @@
+package schema
+
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+
+	e "go-link/common/pkg/database/ent"
+)
+
+// Role holds the schema definition for the Role entity.
+type Role struct {
+	ent.Schema
+}
+
+// Mixin of the Role.
+func (Role) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		e.BaseMixin{},
+	}
+}
+
+// Fields of the Role.
+func (Role) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name").
+			Unique().
+			NotEmpty(),
+		field.Int("level").
+			Default(0).
+			Comment("Role hierarchy level, lower = more privileged"),
+		field.Int("parent_id").
+			Default(-1).
+			Comment("Parent role ID for hierarchy (root = -1)"),
+		field.Int("lft").
+			Default(0).
+			Comment("Nested Set left value for hierarchy"),
+		field.Int("rgt").
+			Default(0).
+			Comment("Nested Set right value for hierarchy"),
+	}
+}
+
+// Edges of the Role.
+func (Role) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("tenant_members", TenantMember.Type),
+		edge.To("permissions", Permission.Type),
+	}
+}

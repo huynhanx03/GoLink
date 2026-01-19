@@ -163,8 +163,8 @@ func (r *RedisEngine) BatchSet(ctx context.Context, values map[string]any, ttl t
 	return err
 }
 
-// DeleteBatch removes multiple keys from the cache
-func (r *RedisEngine) DeleteBatch(ctx context.Context, keys []string) error {
+// DeleteBulk removes multiple keys from the cache
+func (r *RedisEngine) DeleteBulk(ctx context.Context, keys []string) error {
 	return r.client.Del(ctx, keys...).Err()
 }
 

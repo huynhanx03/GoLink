@@ -20,6 +20,9 @@ const (
 	MethodWhere         = "Where"
 	MethodOrder         = "Order"
 	MethodMapCreateBulk = "MapCreateBulk"
+	MethodTx            = "Tx"
+	MethodRollback      = "Rollback"
+	MethodCommit        = "Commit"
 
 	// Ent Fields and Prefixes (Reflection)
 	PrefixSet   = "Set"

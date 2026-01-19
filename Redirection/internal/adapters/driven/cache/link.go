@@ -38,10 +38,10 @@ func (l *linkCache) Get(ctx context.Context, id string) (*entity.Link, error) {
 	return &link, nil
 }
 
-func (l *linkCache) DeleteBatch(ctx context.Context, ids []string) error {
+func (l *linkCache) DeleteBulk(ctx context.Context, ids []string) error {
 	idKeys := make([]string, len(ids))
 	for i, id := range ids {
 		idKeys[i] = l.getKey(id)
 	}
-	return l.redis.DeleteBatch(ctx, idKeys)
+	return l.redis.DeleteBulk(ctx, idKeys)
 }

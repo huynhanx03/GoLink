@@ -31,19 +31,19 @@ func (l *LinkRepository) GetOriginalURL(ctx context.Context, shortCode string) (
 	return model.ToEntity(), nil
 }
 
-// CreateBatch creates multiple links in a batch
-func (l *LinkRepository) CreateBatch(ctx context.Context, links []*entity.Link) error {
+// CreateBulk creates multiple links in a batch
+func (l *LinkRepository) CreateBulk(ctx context.Context, links []*entity.Link) error {
 	m := make([]*models.Link, len(links))
 	for i, link := range links {
 		m[i] = models.FromEntity(link)
 	}
-	return l.repo.CreateBatch(ctx, m)
+	return l.repo.CreateBulk(ctx, m)
 }
 
-func (l *LinkRepository) DeleteBatch(ctx context.Context, ids []string) error {
+func (l *LinkRepository) DeleteBulk(ctx context.Context, ids []string) error {
 	args := make([]any, len(ids))
 	for i, v := range ids {
 		args[i] = v
 	}
-	return l.repo.DeleteBatch(ctx, args)
+	return l.repo.DeleteBulk(ctx, args)
 }

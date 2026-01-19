@@ -77,28 +77,10 @@ func (r *BaseRepository[T, PT, ID]) Create(ctx context.Context, model *T) error 
 }
 
 // Update updates an existing model.
+// Update updates an existing model.
 func (r *BaseRepository[T, PT, ID]) Update(ctx context.Context, model *T) error {
-	val := reflect.ValueOf(model).Elem()
 	client := r.getEntityClient()
-
-	// Cast to PT to access GetID
-	idValue := reflect.ValueOf(PT(model).GetID())
-
-	updateMethod := client.Method(r.meta.MethodUpdate)
-	updateBuilder := updateMethod.Call([]reflect.Value{idValue})[0]
-
-	r.setFields(updateBuilder, val)
-
-	saveMethod := updateBuilder.MethodByName(MethodSave)
-	results := saveMethod.Call([]reflect.Value{reflect.ValueOf(ctx)})
-	if errVal := results[1]; !errVal.IsNil() {
-		return errVal.Interface().(error)
-	}
-
-	savedModel := results[0].Elem()
-	val.Set(savedModel)
-
-	return nil
+	return r.updateWithClient(ctx, client, model)
 }
 
 // Delete removes a model by ID.
@@ -167,6 +149,27 @@ func (r *BaseRepository[T, PT, ID]) Find(ctx context.Context, opts *dto.QueryOpt
 	}, nil
 }
 
+// FindAll retrieves all models without pagination.
+func (r *BaseRepository[T, PT, ID]) FindAll(ctx context.Context) ([]*T, error) {
+	client := r.getEntityClient()
+
+	queryMethod := client.Method(r.meta.MethodQuery)
+	queryBuilder := queryMethod.Call(nil)[0]
+
+	allResult := queryBuilder.MethodByName(MethodAll).Call([]reflect.Value{reflect.ValueOf(ctx)})
+	if errVal := allResult[1]; !errVal.IsNil() {
+		return nil, errVal.Interface().(error)
+	}
+
+	resultSlice := allResult[0]
+	records := make([]*T, resultSlice.Len())
+	for i := 0; i < resultSlice.Len(); i++ {
+		records[i] = resultSlice.Index(i).Interface().(*T)
+	}
+
+	return records, nil
+}
+
 // IsNotFound checks if the error is an Ent "not found" error.
 func IsNotFound(err error) bool {
 	if err == nil {
@@ -188,8 +191,76 @@ func (r *BaseRepository[T, PT, ID]) Exists(ctx context.Context, id ID) (bool, er
 	return true, nil
 }
 
-// CreateBatch inserts multiple models.
-func (r *BaseRepository[T, PT, ID]) CreateBatch(ctx context.Context, models []*T) error {
+// UpdateBulk updates multiple models using a transaction.
+func (r *BaseRepository[T, PT, ID]) UpdateBulk(ctx context.Context, models []*T) error {
+	if len(models) == 0 {
+		return nil
+	}
+
+	if r.meta.MethodTx == -1 {
+		for _, model := range models {
+			if err := r.Update(ctx, model); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	clientVal := reflect.ValueOf(r.client).Elem()
+	txMethod := clientVal.Method(r.meta.MethodTx)
+
+	txResults := txMethod.Call([]reflect.Value{reflect.ValueOf(ctx)})
+	if !txResults[1].IsNil() {
+		return txResults[1].Interface().(error)
+	}
+	txVal := txResults[0]
+
+	committed := false
+	defer func() {
+		if !committed {
+			txVal.Method(r.meta.MethodRollback).Call(nil)
+		}
+	}()
+
+	txEntityClient := txVal.Elem().Field(r.meta.ClientIndex)
+
+	for _, model := range models {
+		if err := r.updateWithClient(ctx, txEntityClient, model); err != nil {
+			return err
+		}
+	}
+
+	if errVal := txVal.Method(r.meta.MethodCommit).Call(nil)[0]; !errVal.IsNil() {
+		return errVal.Interface().(error)
+	}
+	committed = true
+
+	return nil
+}
+
+func (r *BaseRepository[T, PT, ID]) updateWithClient(ctx context.Context, client reflect.Value, model *T) error {
+	val := reflect.ValueOf(model).Elem()
+	idValue := reflect.ValueOf(PT(model).GetID())
+
+	updateMethod := client.Method(r.meta.MethodUpdate)
+	updateBuilder := updateMethod.Call([]reflect.Value{idValue})[0]
+
+	r.setFields(updateBuilder, val)
+
+	saveMethod := updateBuilder.MethodByName(MethodSave)
+	results := saveMethod.Call([]reflect.Value{reflect.ValueOf(ctx)})
+	if errVal := results[1]; !errVal.IsNil() {
+		return errVal.Interface().(error)
+	}
+
+	savedModel := results[0].Elem()
+	val.Set(savedModel)
+
+	return nil
+}
+
+// CreateBulk inserts multiple models.
+func (r *BaseRepository[T, PT, ID]) CreateBulk(ctx context.Context, models []*T) error {
 	if len(models) == 0 {
 		return nil
 	}
@@ -239,8 +310,8 @@ func (r *BaseRepository[T, PT, ID]) CreateBatch(ctx context.Context, models []*T
 	return nil
 }
 
-// DeleteBatch removes multiple models by ID.
-func (r *BaseRepository[T, PT, ID]) DeleteBatch(ctx context.Context, ids []ID) error {
+// DeleteBulk removes multiple models by ID.
+func (r *BaseRepository[T, PT, ID]) DeleteBulk(ctx context.Context, ids []ID) error {
 	for _, id := range ids {
 		if err := r.Delete(ctx, id); err != nil {
 			if IsNotFound(err) {
