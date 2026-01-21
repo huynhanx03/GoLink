@@ -4,3 +4,7 @@ variables:
     value: localhost:8080
   - name: base_url
     value: http://localhost:8080
+  - secret: true
+    name: access_token
+  - secret: true
+    name: refresh_token

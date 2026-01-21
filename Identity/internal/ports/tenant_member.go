@@ -15,5 +15,6 @@ type TenantMemberRepository interface {
 	Create(ctx context.Context, e *entity.TenantMember) error
 	Update(ctx context.Context, e *entity.TenantMember) error
 	Delete(ctx context.Context, id int) error
+	GetByUserAndTenant(ctx context.Context, userID, tenantID int) (*entity.TenantMember, error)
 	Exists(ctx context.Context, id int) (bool, error)
 }

@@ -2,7 +2,7 @@ package ports
 
 import (
 	"context"
-
+	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/core/entity"
 )
 
@@ -15,4 +15,11 @@ type UserRepository interface {
 	Delete(ctx context.Context, id int) error
 	Exists(ctx context.Context, id int) (bool, error)
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
+}
+
+// UserService defines the interface for user business logic.
+type UserService interface {
+	Delete(ctx context.Context, id int) error
+	UpdateProfile(ctx context.Context, userID int, req *dto.UpdateProfileRequest) (*dto.ProfileResponse, error)
+	GetProfile(ctx context.Context, userID int) (*dto.ProfileResponse, error)
 }

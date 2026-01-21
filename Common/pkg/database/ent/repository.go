@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+
 	"go-link/common/pkg/constraints"
 	"go-link/common/pkg/dto"
 )
@@ -170,6 +172,50 @@ func (r *BaseRepository[T, PT, ID]) FindAll(ctx context.Context) ([]*T, error) {
 	return records, nil
 }
 
+// FindByIDs retrieves multiple models by IDs.
+func (r *BaseRepository[T, PT, ID]) FindByIDs(ctx context.Context, ids []ID) ([]*T, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	client := r.getEntityClient()
+	queryMethod := client.Method(r.meta.MethodQuery)
+	queryBuilder := queryMethod.Call(nil)[0]
+
+	idsAny := make([]any, len(ids))
+	for i, id := range ids {
+		idsAny[i] = id
+	}
+
+	// Create generic Predicate function: func(s *sql.Selector)
+	predicateFunc := func(args []reflect.Value) []reflect.Value {
+		s := args[0].Interface().(*sql.Selector)
+		s.Where(sql.In(s.C("id"), idsAny...))
+		return nil
+	}
+
+	// Convert generic function to specific Predicate type (e.g. predicate.User)
+	predicateVal := reflect.MakeFunc(r.meta.PredicateType, predicateFunc)
+
+	// Call Where(predicate)
+	whereMethod := queryBuilder.Method(r.meta.MethodWhere)
+	whereMethod.Call([]reflect.Value{predicateVal})
+
+	// Call All(ctx)
+	allResult := queryBuilder.MethodByName(MethodAll).Call([]reflect.Value{reflect.ValueOf(ctx)})
+	if errVal := allResult[1]; !errVal.IsNil() {
+		return nil, errVal.Interface().(error)
+	}
+
+	resultSlice := allResult[0]
+	records := make([]*T, resultSlice.Len())
+	for i := 0; i < resultSlice.Len(); i++ {
+		records[i] = resultSlice.Index(i).Interface().(*T)
+	}
+
+	return records, nil
+}
+
 // IsNotFound checks if the error is an Ent "not found" error.
 func IsNotFound(err error) bool {
 	if err == nil {
@@ -283,8 +329,7 @@ func (r *BaseRepository[T, PT, ID]) CreateBulk(ctx context.Context, models []*T)
 	setFunc := reflect.MakeFunc(setFuncType, func(args []reflect.Value) []reflect.Value {
 		builder := args[0]
 		index := int(args[1].Int())
-		model := modelsVal.Index(index).Elem()
-		modelVal := model.Elem()
+		modelVal := modelsVal.Index(index).Elem()
 
 		r.setFields(builder, modelVal)
 		return nil
@@ -304,7 +349,7 @@ func (r *BaseRepository[T, PT, ID]) CreateBulk(ctx context.Context, models []*T)
 	savedEntities := results[0]
 	for i := 0; i < savedEntities.Len(); i++ {
 		savedModel := savedEntities.Index(i).Elem()
-		modelsVal.Index(i).Elem().Elem().Set(savedModel)
+		modelsVal.Index(i).Elem().Set(savedModel)
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package global
 
 import (
+	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/logger"
 	"go-link/common/pkg/settings"
 
@@ -11,4 +12,5 @@ var (
 	Config    settings.Config
 	Logger    *logger.LoggerZap
 	EntClient *generate.Client
+	Tinylfu   cache.LocalCache[string, any]
 )

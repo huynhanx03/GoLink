@@ -16,9 +16,12 @@ type ResourceContainer struct {
 }
 
 // InitResourceDependencies initializes resource dependencies.
-func InitResourceDependencies(client *generate.Client) ResourceContainer {
+func InitResourceDependencies(
+	client *generate.Client,
+	cacheService ports.CacheService,
+) ResourceContainer {
 	repository := db.NewResourceRepository(client)
-	service := service.NewResourceService(repository)
+	service := service.NewResourceService(repository, cacheService)
 	handler := driverHttp.NewResourceHandler(service)
 
 	return ResourceContainer{

@@ -7,6 +7,7 @@ import (
 	d "go-link/common/pkg/dto"
 
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"go-link/identity/internal/adapters/driven/db/ent/generate/role"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
@@ -67,6 +68,17 @@ func (r *RoleRepository) Get(ctx context.Context, id int) (*entity.Role, error) 
 	return mapper.ToRoleEntity(record), nil
 }
 
+// GetByName retrieves a role by name.
+func (r *RoleRepository) GetByName(ctx context.Context, name string) (*entity.Role, error) {
+	record, err := r.client.Query().
+		Where(role.Name(name)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.ToRoleEntity(record), nil
+}
+
 // Create creates a new role.
 func (r *RoleRepository) Create(ctx context.Context, e *entity.Role) error {
 	model := mapper.ToRoleModel(e)
@@ -116,4 +128,20 @@ func (r *RoleRepository) Delete(ctx context.Context, id int) error {
 // Exists checks if a role exists by ID.
 func (r *RoleRepository) Exists(ctx context.Context, id int) (bool, error) {
 	return r.repo.Exists(ctx, id)
+}
+
+// FindDescendants retrieves all descendant roles of a given role (inclusive).
+func (r *RoleRepository) FindDescendants(ctx context.Context, lft, rgt int) ([]*entity.Role, error) {
+	models, err := r.client.Query().
+		Where(role.LftGTE(lft), role.RgtLTE(rgt)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	entities := make([]*entity.Role, len(models))
+	for i, m := range models {
+		entities[i] = mapper.ToRoleEntity(m)
+	}
+	return entities, nil
 }

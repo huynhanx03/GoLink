@@ -28,6 +28,8 @@ type entityMetadata struct {
 	MethodTx       int
 	MethodCommit   int
 	MethodRollback int
+	MethodWhere    int
+	PredicateType  reflect.Type
 	Fields         []fieldInfo
 }
 
@@ -84,6 +86,16 @@ func newEntityMetadata[T any, ID constraints.ID](client any) (*entityMetadata, e
 	if meta.MethodQuery, err = findMethodIndex(specificClientTyp, MethodQuery); err != nil {
 		return nil, err
 	}
+
+	// Cache Where method and Predicate type from Query Builder
+	queryMethod, _ := specificClientTyp.MethodByName(MethodQuery)
+	queryBuilderType := queryMethod.Type.Out(0)
+	whereMethod, ok := queryBuilderType.MethodByName(MethodWhere)
+	if !ok {
+		return nil, fmt.Errorf("method Where not found for query builder %s", queryBuilderType.Name())
+	}
+	meta.MethodWhere = whereMethod.Index
+	meta.PredicateType = whereMethod.Type.In(1).Elem()
 
 	if m, ok := specificClientTyp.MethodByName(MethodMapCreateBulk); ok {
 		meta.MethodMapBulk = m.Index

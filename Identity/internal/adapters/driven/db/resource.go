@@ -85,3 +85,17 @@ func (r *ResourceRepository) Delete(ctx context.Context, id int) error {
 func (r *ResourceRepository) Exists(ctx context.Context, id int) (bool, error) {
 	return r.repo.Exists(ctx, id)
 }
+
+// FindByIDs retrieves resources by a list of IDs.
+func (r *ResourceRepository) FindByIDs(ctx context.Context, ids []int) ([]*entity.Resource, error) {
+	models, err := r.repo.FindByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	entities := make([]*entity.Resource, len(models))
+	for i, m := range models {
+		entities[i] = mapper.ToResourceEntity(m)
+	}
+	return entities, nil
+}

@@ -1,6 +1,8 @@
 package di
 
 import (
+	"go-link/common/pkg/common/cache"
+
 	db "go-link/identity/internal/adapters/driven/db"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 	driverHttp "go-link/identity/internal/adapters/driver/http"
@@ -16,9 +18,12 @@ type AttributeDefinitionContainer struct {
 }
 
 // InitAttributeDefinitionDependencies initializes attribute definition dependencies.
-func InitAttributeDefinitionDependencies(client *generate.Client) AttributeDefinitionContainer {
+func InitAttributeDefinitionDependencies(
+	client *generate.Client,
+	cache cache.LocalCache[string, any],
+) AttributeDefinitionContainer {
 	repository := db.NewAttributeDefinitionRepository(client)
-	service := service.NewAttributeDefinitionService(repository)
+	service := service.NewAttributeDefinitionService(repository, cache)
 	handler := driverHttp.NewAttributeDefinitionHandler(service)
 
 	return AttributeDefinitionContainer{

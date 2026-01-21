@@ -7,6 +7,7 @@ type Container struct {
 	PermissionContainer          PermissionContainer
 	DomainContainer              DomainContainer
 	ResourceContainer            ResourceContainer
+	AuthenticationContainer      AuthenticationContainer
 	UserContainer                UserContainer
 	CredentialContainer          CredentialContainer
 	FederatedIdentityContainer   FederatedIdentityContainer

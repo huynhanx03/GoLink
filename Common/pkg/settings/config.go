@@ -10,6 +10,11 @@ type Config struct {
 	WideColumn    WideColumn    `mapstructure:"wide_column"`
 	Database      Database      `mapstructure:"database"`
 	SnowflakeNode SnowflakeNode `mapstructure:"snowflake_node"`
+	JWT           JWT           `mapstructure:"jwt"`
+}
+
+type JWT struct {
+	Secret string `mapstructure:"secret"`
 }
 
 // WideColumn is the configuration for Wide Column databases (Cassandra/ScyllaDB)

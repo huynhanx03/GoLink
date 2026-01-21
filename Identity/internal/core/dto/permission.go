@@ -4,14 +4,14 @@ package dto
 type CreatePermissionRequest struct {
 	RoleID      int     `json:"role_id" validate:"required"`
 	ResourceID  int     `json:"resource_id" validate:"required"`
-	Description *string `json:"description"`
+	Description *string `json:"description" validate:"omitempty,max=255"`
 	Scopes      int     `json:"scopes"`
 }
 
 // UpdatePermissionRequest represents request to update a permission.
 type UpdatePermissionRequest struct {
 	ID          int     `json:"-" uri:"id"`
-	Description *string `json:"description"`
+	Description *string `json:"description" validate:"omitempty,max=255"`
 	Scopes      *int    `json:"scopes"`
 }
 

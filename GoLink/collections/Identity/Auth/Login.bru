@@ -1,0 +1,36 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/identity/auth/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username": "usertest",
+    "password": "123"
+  }
+}
+
+script:post-response {
+  const body = JSON.parse(res.body);
+  
+  if (body?.data?.access_token) {
+    bru.setEnvVar("access_token", body.data.access_token);
+  }
+  
+  if (body?.data?.refresh_token) {
+    bru.setEnvVar("refresh_token", body.data.refresh_token);
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

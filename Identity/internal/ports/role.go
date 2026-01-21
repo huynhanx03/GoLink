@@ -14,10 +14,12 @@ type RoleRepository interface {
 	FindAll(ctx context.Context) ([]*entity.Role, error)
 	Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.Role], error)
 	Get(ctx context.Context, id int) (*entity.Role, error)
+	GetByName(ctx context.Context, name string) (*entity.Role, error)
 	Create(ctx context.Context, e *entity.Role) error
 	Update(ctx context.Context, e *entity.Role) error
 	UpdateBulk(ctx context.Context, entities []*entity.Role) error
 	Delete(ctx context.Context, id int) error
+	FindDescendants(ctx context.Context, lft, rgt int) ([]*entity.Role, error)
 	Exists(ctx context.Context, id int) (bool, error)
 }
 

@@ -16,9 +16,12 @@ type RoleContainer struct {
 }
 
 // InitRoleDependencies initializes role dependencies.
-func InitRoleDependencies(client *generate.Client) RoleContainer {
+func InitRoleDependencies(
+	client *generate.Client,
+	cacheService ports.CacheService,
+) RoleContainer {
 	repository := db.NewRoleRepository(client)
-	service := service.NewRoleService(repository)
+	service := service.NewRoleService(repository, cacheService)
 	handler := driverHttp.NewRoleHandler(service)
 
 	return RoleContainer{

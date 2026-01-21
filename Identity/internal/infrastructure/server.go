@@ -41,6 +41,8 @@ func NewHTTPServer() *Server {
 		c.DomainContainer.Handler,
 		c.ResourceContainer.Handler,
 		c.AttributeDefinitionContainer.Handler,
+		c.AuthenticationContainer.Handler,
+		c.UserContainer.Handler,
 	)
 
 	// Create Gin engine

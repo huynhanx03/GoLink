@@ -22,6 +22,10 @@ run-redirection:
 run-identity:
 	cd Identity && go run cmd/server/main.go
 
+.PHONY: init-ent
+init-ent:
+	go generate ./Identity/...
+
 .PHONY: init-db
 init-db:
 	docker exec -i scylla-node1 cqlsh < Generation/scripts/init_db.cql
@@ -35,4 +39,5 @@ init-cdc:
 .PHONY: init-all
 init-all:
 	make init-db
+	make init-ent
 	make init-cdc

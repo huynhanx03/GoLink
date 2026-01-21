@@ -15,11 +15,12 @@ import (
 
 type permissionService struct {
 	permissionRepo ports.PermissionRepository
+	cacheService   ports.CacheService
 }
 
 // NewPermissionService creates a new PermissionService instance.
-func NewPermissionService(permissionRepo ports.PermissionRepository) ports.PermissionService {
-	return &permissionService{permissionRepo: permissionRepo}
+func NewPermissionService(permissionRepo ports.PermissionRepository, cacheService ports.CacheService) ports.PermissionService {
+	return &permissionService{permissionRepo: permissionRepo, cacheService: cacheService}
 }
 
 // Find retrieves permissions with pagination.
@@ -48,12 +49,13 @@ func (s *permissionService) Find(ctx context.Context, opts *d.QueryOptions) (*d.
 	}, nil
 }
 
-// Get retrieves a permission by ID.
+// Get retrieves a permission by ID
 func (s *permissionService) Get(ctx context.Context, id int) (*dto.PermissionResponse, error) {
 	permission, err := s.permissionRepo.Get(ctx, id)
 	if err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get permission", http.StatusInternalServerError)
 	}
+
 	return mapper.ToPermissionResponse(permission), nil
 }
 
@@ -63,6 +65,11 @@ func (s *permissionService) Create(ctx context.Context, req *dto.CreatePermissio
 
 	if err := s.permissionRepo.Create(ctx, permission); err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create permission", http.StatusInternalServerError)
+	}
+
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
 	}
 
 	return mapper.ToPermissionResponse(permission), nil
@@ -87,6 +94,11 @@ func (s *permissionService) Update(ctx context.Context, id int, req *dto.UpdateP
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update permission", http.StatusInternalServerError)
 	}
 
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
+	}
+
 	return mapper.ToPermissionResponse(permission), nil
 }
 
@@ -103,6 +115,11 @@ func (s *permissionService) Delete(ctx context.Context, id int) error {
 
 	if err := s.permissionRepo.Delete(ctx, id); err != nil {
 		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete permission", http.StatusInternalServerError)
+	}
+
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package di
 
 import (
+	"go-link/common/pkg/common/cache"
 	db "go-link/identity/internal/adapters/driven/db"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 	driverHttp "go-link/identity/internal/adapters/driver/http"
@@ -16,9 +17,12 @@ type DomainContainer struct {
 }
 
 // InitDomainDependencies initializes domain dependencies.
-func InitDomainDependencies(client *generate.Client) DomainContainer {
+func InitDomainDependencies(
+	client *generate.Client,
+	cache cache.LocalCache[string, any],
+) DomainContainer {
 	repository := db.NewDomainRepository(client)
-	service := service.NewDomainService(repository)
+	service := service.NewDomainService(repository, cache)
 	handler := driverHttp.NewDomainHandler(service)
 
 	return DomainContainer{

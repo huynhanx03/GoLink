@@ -7,6 +7,7 @@ import (
 	d "go-link/common/pkg/dto"
 
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"go-link/identity/internal/adapters/driven/db/ent/generate/tenantmember"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
@@ -84,4 +85,15 @@ func (r *TenantMemberRepository) Delete(ctx context.Context, id int) error {
 // Exists checks if a tenant member exists by ID.
 func (r *TenantMemberRepository) Exists(ctx context.Context, id int) (bool, error) {
 	return r.repo.Exists(ctx, id)
+}
+
+// GetByUserAndTenant gets a tenant member by user ID and tenant ID.
+func (r *TenantMemberRepository) GetByUserAndTenant(ctx context.Context, userID, tenantID int) (*entity.TenantMember, error) {
+	record, err := r.client.Query().
+		Where(tenantmember.UserID(userID), tenantmember.TenantID(tenantID)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.ToTenantMemberEntity(record), nil
 }

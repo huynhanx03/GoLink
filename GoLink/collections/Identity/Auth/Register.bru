@@ -1,0 +1,27 @@
+meta {
+  name: Register
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/identity/auth/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username": "usertest",
+    "password": "123456789",
+    "first_name": "nhan",
+    "last_name": "huynh",
+    "gender": 0,
+    "birthday": "2006-01-02"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

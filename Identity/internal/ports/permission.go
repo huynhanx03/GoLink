@@ -16,6 +16,7 @@ type PermissionRepository interface {
 	Create(ctx context.Context, e *entity.Permission) error
 	Update(ctx context.Context, e *entity.Permission) error
 	Delete(ctx context.Context, id int) error
+	FindByRoleIDs(ctx context.Context, roleIDs []int) ([]*entity.Permission, error)
 	Exists(ctx context.Context, id int) (bool, error)
 }
 

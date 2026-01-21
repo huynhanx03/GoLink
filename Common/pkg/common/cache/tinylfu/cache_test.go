@@ -360,7 +360,7 @@ func TestSetWithTTL_WithCostFunc(t *testing.T) {
 }
 
 // ============================================================================
-// Del() Tests
+// Delete() Tests
 // ============================================================================
 
 func TestDel(t *testing.T) {
@@ -372,14 +372,14 @@ func TestDel(t *testing.T) {
 
 	// Verify exists
 	if _, ok := c.Get("key"); !ok {
-		t.Error("key should exist before Del")
+		t.Error("key should exist before Delete")
 	}
 
-	c.Del("key")
+	c.Delete("key")
 
 	// Verify deleted
 	if _, ok := c.Get("key"); ok {
-		t.Error("key should not exist after Del")
+		t.Error("key should not exist after Delete")
 	}
 }
 
@@ -391,7 +391,7 @@ func TestDel_ClosedCache(t *testing.T) {
 	c.Close()
 
 	// Should not panic
-	c.Del("key")
+	c.Delete("key")
 }
 
 func TestDel_NonExistentKey(t *testing.T) {
@@ -399,7 +399,7 @@ func TestDel_NonExistentKey(t *testing.T) {
 	defer c.Close()
 
 	// Should not panic
-	c.Del("nonexistent")
+	c.Delete("nonexistent")
 }
 
 func TestDel_ThenGet(t *testing.T) {
@@ -409,14 +409,14 @@ func TestDel_ThenGet(t *testing.T) {
 	c.Set("key", 42, 1)
 	time.Sleep(50 * time.Millisecond)
 
-	c.Del("key")
+	c.Delete("key")
 
 	got, ok := c.Get("key")
 	if ok {
-		t.Error("Get() after Del should return false")
+		t.Error("Get() after Delete should return false")
 	}
 	if got != 0 {
-		t.Errorf("Get() after Del should return zero value, got %v", got)
+		t.Errorf("Get() after Delete should return zero value, got %v", got)
 	}
 }
 
@@ -514,8 +514,8 @@ func TestClose_ThenOperations(t *testing.T) {
 		t.Error("Get() on closed cache should return false")
 	}
 
-	// Del should not panic
-	c.Del("key")
+	// Delete should not panic
+	c.Delete("key")
 }
 
 // ============================================================================
@@ -674,13 +674,13 @@ func TestWorkflow_SetGetDelGet(t *testing.T) {
 		t.Errorf("Get() = (%v, %v), want (42, true)", got, ok)
 	}
 
-	// Del
-	c.Del("key")
+	// Delete
+	c.Delete("key")
 
-	// Get after Del
+	// Get after Delete
 	got, ok = c.Get("key")
 	if ok || got != 0 {
-		t.Errorf("Get() after Del = (%v, %v), want (0, false)", got, ok)
+		t.Errorf("Get() after Delete = (%v, %v), want (0, false)", got, ok)
 	}
 }
 

@@ -15,11 +15,12 @@ import (
 
 type resourceService struct {
 	resourceRepo ports.ResourceRepository
+	cacheService ports.CacheService
 }
 
 // NewResourceService creates a new ResourceService instance.
-func NewResourceService(resourceRepo ports.ResourceRepository) ports.ResourceService {
-	return &resourceService{resourceRepo: resourceRepo}
+func NewResourceService(resourceRepo ports.ResourceRepository, cacheService ports.CacheService) ports.ResourceService {
+	return &resourceService{resourceRepo: resourceRepo, cacheService: cacheService}
 }
 
 // Find retrieves resources with pagination.
@@ -54,6 +55,7 @@ func (s *resourceService) Get(ctx context.Context, id int) (*dto.ResourceRespons
 	if err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get resource", http.StatusInternalServerError)
 	}
+
 	return mapper.ToResourceResponse(resource), nil
 }
 
@@ -63,6 +65,11 @@ func (s *resourceService) Create(ctx context.Context, req *dto.CreateResourceReq
 
 	if err := s.resourceRepo.Create(ctx, resource); err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create resource", http.StatusInternalServerError)
+	}
+
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
 	}
 
 	return mapper.ToResourceResponse(resource), nil
@@ -87,6 +94,11 @@ func (s *resourceService) Update(ctx context.Context, id int, req *dto.UpdateRes
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update resource", http.StatusInternalServerError)
 	}
 
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
+	}
+
 	return mapper.ToResourceResponse(resource), nil
 }
 
@@ -103,6 +115,11 @@ func (s *resourceService) Delete(ctx context.Context, id int) error {
 
 	if err := s.resourceRepo.Delete(ctx, id); err != nil {
 		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete resource", http.StatusInternalServerError)
+	}
+
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
 	}
 
 	return nil

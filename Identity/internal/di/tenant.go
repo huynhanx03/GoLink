@@ -1,6 +1,7 @@
 package di
 
 import (
+	"go-link/common/pkg/common/cache"
 	db "go-link/identity/internal/adapters/driven/db"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 	driverHttp "go-link/identity/internal/adapters/driver/http"
@@ -16,9 +17,12 @@ type TenantContainer struct {
 }
 
 // InitTenantDependencies initializes tenant dependencies.
-func InitTenantDependencies(client *generate.Client) TenantContainer {
+func InitTenantDependencies(
+	client *generate.Client,
+	cache cache.LocalCache[string, any],
+) TenantContainer {
 	repository := db.NewTenantRepository(client)
-	service := service.NewTenantService(repository)
+	service := service.NewTenantService(repository, cache)
 	handler := driverHttp.NewTenantHandler(service)
 
 	return TenantContainer{

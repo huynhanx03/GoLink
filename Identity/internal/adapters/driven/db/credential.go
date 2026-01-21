@@ -7,6 +7,7 @@ import (
 	d "go-link/common/pkg/dto"
 
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"go-link/identity/internal/adapters/driven/db/ent/generate/credential"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
@@ -47,6 +48,20 @@ func (r *CredentialRepository) Find(ctx context.Context, opts *d.QueryOptions) (
 // Get retrieves a credential by ID.
 func (r *CredentialRepository) Get(ctx context.Context, id int) (*entity.Credential, error) {
 	record, err := r.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.ToCredentialEntity(record), nil
+}
+
+// GetByUserID retrieves a credential by user ID and type.
+func (r *CredentialRepository) GetByUserID(ctx context.Context, userID int, credType string) (*entity.Credential, error) {
+	record, err := r.client.Query().
+		Where(
+			credential.UserID(userID),
+			credential.Type(credType),
+		).
+		Only(ctx)
 	if err != nil {
 		return nil, err
 	}

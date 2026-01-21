@@ -1,0 +1,27 @@
+meta {
+  name: Tenant Access
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/identity/auth/tenant-access
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{refresh_token}}
+}
+
+body:json {
+  {
+    "user_id": 4,
+    "tenant_id": 2
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

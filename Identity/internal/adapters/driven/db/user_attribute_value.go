@@ -64,6 +64,25 @@ func (r *UserAttributeValueRepository) Create(ctx context.Context, e *entity.Use
 	return nil
 }
 
+// CreateBulk creates multiple user attribute values.
+func (r *UserAttributeValueRepository) CreateBulk(ctx context.Context, entities []*entity.UserAttributeValue) error {
+	models := make([]*generate.UserAttributeValue, len(entities))
+	for i, e := range entities {
+		models[i] = mapper.ToUserAttributeValueModel(e)
+	}
+
+	if err := r.repo.CreateBulk(ctx, models); err != nil {
+		return err
+	}
+
+	for i, m := range models {
+		if created := mapper.ToUserAttributeValueEntity(m); created != nil {
+			*entities[i] = *created
+		}
+	}
+	return nil
+}
+
 // Update updates an existing user attribute value.
 func (r *UserAttributeValueRepository) Update(ctx context.Context, e *entity.UserAttributeValue) error {
 	model := mapper.ToUserAttributeValueModel(e)

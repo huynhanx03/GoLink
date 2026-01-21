@@ -105,7 +105,15 @@ CREATE TABLE IF NOT EXISTS user_attribute_values (
 
 INSERT INTO resources (id, key, description, created_at, updated_at) VALUES
 (1, 'generation', 'Link generation management', NOW(), NOW()),
-(2, 'domains', 'Domain management', NOW(), NOW())
+(2, 'domains', 'Domain management', NOW(), NOW()),
+(3, 'tenant', 'Tenant management', NOW(), NOW()),
+(4, 'user', 'User management', NOW(), NOW()),
+(5, 'role', 'Role management', NOW(), NOW()),
+(6, 'permission', 'Permission management', NOW(), NOW()),
+(7, 'resource', 'Resource management', NOW(), NOW()),
+(8, 'attribute_definition', 'Attribute definition management', NOW(), NOW()),
+(9, 'billing', 'Billing management', NOW(), NOW()),
+(10, 'payment', 'Payment management', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO attribute_definitions (id, key, data_type, description, created_at, updated_at) VALUES
@@ -134,8 +142,13 @@ ON CONFLICT (id) DO NOTHING;
 -- reset sequences
 
 SELECT setval('users_id_seq', (SELECT COALESCE(MAX(id), 1) FROM users));
+SELECT setval('tenants_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tenants));
 SELECT setval('roles_id_seq', (SELECT COALESCE(MAX(id), 1) FROM roles));
 SELECT setval('resources_id_seq', (SELECT COALESCE(MAX(id), 1) FROM resources));
 SELECT setval('attribute_definitions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM attribute_definitions));
 SELECT setval('user_attribute_values_id_seq', (SELECT COALESCE(MAX(id), 1) FROM user_attribute_values));
 SELECT setval('permissions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM permissions));
+SELECT setval('tenant_members_id_seq', (SELECT COALESCE(MAX(id), 1) FROM tenant_members));
+SELECT setval('domains_id_seq', (SELECT COALESCE(MAX(id), 1) FROM domains));
+SELECT setval('credentials_id_seq', (SELECT COALESCE(MAX(id), 1) FROM credentials));
+SELECT setval('federated_identities_id_seq', (SELECT COALESCE(MAX(id), 1) FROM federated_identities));

@@ -3,23 +3,28 @@ package service
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"go-link/common/pkg/common/apperr"
+	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
+	"go-link/identity/internal/constant"
 	"go-link/identity/internal/core/dto"
+	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
 
 type domainService struct {
 	domainRepo ports.DomainRepository
+	cache      cache.LocalCache[string, any]
 }
 
 // NewDomainService creates a new DomainService instance.
-func NewDomainService(domainRepo ports.DomainRepository) ports.DomainService {
-	return &domainService{domainRepo: domainRepo}
+func NewDomainService(domainRepo ports.DomainRepository, cache cache.LocalCache[string, any]) ports.DomainService {
+	return &domainService{domainRepo: domainRepo, cache: cache}
 }
 
 // Find retrieves domains with pagination.
@@ -50,10 +55,17 @@ func (s *domainService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Pagi
 
 // Get retrieves a domain by ID.
 func (s *domainService) Get(ctx context.Context, id int) (*dto.DomainResponse, error) {
+	cacheKey := constant.CacheKeyPrefixDomainID + strconv.Itoa(id)
+	if d, found := cache.GetLocal[*entity.Domain](s.cache, cacheKey); found {
+		return mapper.ToDomainResponse(d), nil
+	}
+
 	domain, err := s.domainRepo.Get(ctx, id)
 	if err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get domain", http.StatusInternalServerError)
 	}
+
+	cache.SetLocal(s.cache, cacheKey, domain, constant.CacheCostID)
 	return mapper.ToDomainResponse(domain), nil
 }
 
@@ -87,6 +99,10 @@ func (s *domainService) Update(ctx context.Context, id int, req *dto.UpdateDomai
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update domain", http.StatusInternalServerError)
 	}
 
+	// Invalidate Cache
+	cacheKeyID := constant.CacheKeyPrefixDomainID + strconv.Itoa(id)
+	cache.SetLocal(s.cache, cacheKeyID, domain, constant.CacheCostID)
+
 	return mapper.ToDomainResponse(domain), nil
 }
 
@@ -104,6 +120,14 @@ func (s *domainService) Delete(ctx context.Context, id int) error {
 	if err := s.domainRepo.Delete(ctx, id); err != nil {
 		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete domain", http.StatusInternalServerError)
 	}
+
+	if err := s.domainRepo.Delete(ctx, id); err != nil {
+		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete domain", http.StatusInternalServerError)
+	}
+
+	// Invalidate Cache
+	cacheKeyID := constant.CacheKeyPrefixDomainID + strconv.Itoa(id)
+	cache.DeleteLocal(s.cache, cacheKeyID)
 
 	return nil
 }

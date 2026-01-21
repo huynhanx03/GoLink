@@ -16,9 +16,12 @@ type PermissionContainer struct {
 }
 
 // InitPermissionDependencies initializes permission dependencies.
-func InitPermissionDependencies(client *generate.Client) PermissionContainer {
+func InitPermissionDependencies(
+	client *generate.Client,
+	cacheService ports.CacheService,
+) PermissionContainer {
 	repository := db.NewPermissionRepository(client)
-	service := service.NewPermissionService(repository)
+	service := service.NewPermissionService(repository, cacheService)
 	handler := driverHttp.NewPermissionHandler(service)
 
 	return PermissionContainer{

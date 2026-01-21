@@ -2,14 +2,14 @@ package dto
 
 // CreateDomainRequest represents request to create a custom domain.
 type CreateDomainRequest struct {
-	Domain   string `json:"domain" validate:"required"`
+	Domain   string `json:"domain" validate:"required,min=4,max=100,hostname"`
 	TenantID int    `json:"tenant_id" validate:"required"`
 }
 
 // UpdateDomainRequest represents request to update a domain.
 type UpdateDomainRequest struct {
 	ID         int     `json:"-" uri:"id"`
-	Domain     *string `json:"domain"`
+	Domain     *string `json:"domain" validate:"omitempty,min=4,max=100,hostname"`
 	IsVerified *bool   `json:"is_verified"`
 }
 

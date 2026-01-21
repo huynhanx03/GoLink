@@ -2,16 +2,16 @@ package dto
 
 // CreateRoleRequest represents request to create a role.
 type CreateRoleRequest struct {
-	Name     string `json:"name" validate:"required"`
-	Level    int    `json:"level"`
+	Name     string `json:"name" validate:"required,min=2,max=50"`
+	Level    int    `json:"level" validate:"min=0,max=100"`
 	ParentID *int   `json:"parent_id"`
 }
 
 // UpdateRoleRequest represents request to update a role.
 type UpdateRoleRequest struct {
 	ID       int     `json:"-" uri:"id"`
-	Name     *string `json:"name"`
-	Level    *int    `json:"level"`
+	Name     *string `json:"name" validate:"omitempty,min=2,max=50"`
+	Level    *int    `json:"level" validate:"omitempty,min=0,max=100"`
 	ParentID *int    `json:"parent_id"`
 }
 

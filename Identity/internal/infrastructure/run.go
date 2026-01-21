@@ -9,7 +9,10 @@ func Run() error {
 	LoadConfig()
 	SetupLogger()
 	SetupEnt()
+	SetupCache()
 	di.SetupDependencies()
+
+	Initialized()
 
 	http := NewHTTPServer()
 	return http.Run()

@@ -16,12 +16,13 @@ import (
 )
 
 type roleService struct {
-	roleRepo ports.RoleRepository
+	roleRepo     ports.RoleRepository
+	cacheService ports.CacheService
 }
 
 // NewRoleService creates a new RoleService instance.
-func NewRoleService(roleRepo ports.RoleRepository) ports.RoleService {
-	return &roleService{roleRepo: roleRepo}
+func NewRoleService(roleRepo ports.RoleRepository, cacheService ports.CacheService) ports.RoleService {
+	return &roleService{roleRepo: roleRepo, cacheService: cacheService}
 }
 
 // Find retrieves roles with pagination.
@@ -56,6 +57,7 @@ func (s *roleService) Get(ctx context.Context, id int) (*dto.RoleResponse, error
 	if err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get role", http.StatusInternalServerError)
 	}
+
 	return mapper.ToRoleResponse(role), nil
 }
 
@@ -64,11 +66,16 @@ func (s *roleService) Create(ctx context.Context, req *dto.CreateRoleRequest) (*
 	role := mapper.ToRoleEntityFromCreate(req)
 
 	if err := s.roleRepo.Create(ctx, role); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create role" + err.Error(), http.StatusInternalServerError)
+		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create role"+err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := s.rebuildTree(ctx); err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+	}
+
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
 	}
 
 	return mapper.ToRoleResponse(role), nil
@@ -110,6 +117,11 @@ func (s *roleService) Update(ctx context.Context, id int, req *dto.UpdateRoleReq
 		}
 	}
 
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
+	}
+
 	return mapper.ToRoleResponse(role), nil
 }
 
@@ -130,6 +142,11 @@ func (s *roleService) Delete(ctx context.Context, id int) error {
 
 	if err := s.rebuildTree(ctx); err != nil {
 		return apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+	}
+
+	// Invalidate Permission Config Version
+	if err := s.cacheService.InvalidatePermissionConfig(ctx); err != nil {
+		// Log error but don't fail request
 	}
 
 	return nil

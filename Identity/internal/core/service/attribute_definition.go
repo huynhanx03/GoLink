@@ -3,23 +3,34 @@ package service
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"go-link/common/pkg/common/apperr"
+	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
+	"go-link/identity/internal/constant"
 	"go-link/identity/internal/core/dto"
+	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
 
 type attributeDefinitionService struct {
 	attrDefRepo ports.AttributeDefinitionRepository
+	cache       cache.LocalCache[string, any]
 }
 
 // NewAttributeDefinitionService creates a new AttributeDefinitionService instance.
-func NewAttributeDefinitionService(attrDefRepo ports.AttributeDefinitionRepository) ports.AttributeDefinitionService {
-	return &attributeDefinitionService{attrDefRepo: attrDefRepo}
+func NewAttributeDefinitionService(
+	attrDefRepo ports.AttributeDefinitionRepository,
+	cache cache.LocalCache[string, any],
+) ports.AttributeDefinitionService {
+	return &attributeDefinitionService{
+		attrDefRepo: attrDefRepo,
+		cache:       cache,
+	}
 }
 
 // Find retrieves attribute definitions with pagination.
@@ -50,10 +61,17 @@ func (s *attributeDefinitionService) Find(ctx context.Context, opts *d.QueryOpti
 
 // Get retrieves an attribute definition by ID.
 func (s *attributeDefinitionService) Get(ctx context.Context, id int) (*dto.AttributeDefinitionResponse, error) {
+	cacheKey := constant.CacheKeyPrefixAttrID + strconv.Itoa(id)
+	if d, found := cache.GetLocal[*entity.AttributeDefinition](s.cache, cacheKey); found {
+		return mapper.ToAttributeDefinitionResponse(d), nil
+	}
+
 	attrDef, err := s.attrDefRepo.Get(ctx, id)
 	if err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get attribute definition", http.StatusInternalServerError)
 	}
+
+	cache.SetLocal(s.cache, cacheKey, attrDef, constant.CacheCostID)
 	return mapper.ToAttributeDefinitionResponse(attrDef), nil
 }
 
@@ -63,6 +81,7 @@ func (s *attributeDefinitionService) Create(ctx context.Context, req *dto.Create
 	if err := s.attrDefRepo.Create(ctx, attrDef); err != nil {
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create attribute definition", http.StatusInternalServerError)
 	}
+
 	return mapper.ToAttributeDefinitionResponse(attrDef), nil
 }
 
@@ -88,6 +107,12 @@ func (s *attributeDefinitionService) Update(ctx context.Context, id int, req *dt
 		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update attribute definition", http.StatusInternalServerError)
 	}
 
+	// Invalidate Cache
+	cacheKeyID := constant.CacheKeyPrefixAttrID + strconv.Itoa(id)
+	cacheKeyKey := constant.CacheKeyPrefixAttrKey + attrDef.Key
+	cache.SetLocal(s.cache, cacheKeyID, attrDef, constant.CacheCostID)
+	cache.DeleteLocal(s.cache, cacheKeyKey)
+
 	return mapper.ToAttributeDefinitionResponse(attrDef), nil
 }
 
@@ -105,6 +130,9 @@ func (s *attributeDefinitionService) Delete(ctx context.Context, id int) error {
 	if err := s.attrDefRepo.Delete(ctx, id); err != nil {
 		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete attribute definition", http.StatusInternalServerError)
 	}
+
+	cacheKeyID := constant.CacheKeyPrefixAttrID + strconv.Itoa(id)
+	cache.DeleteLocal(s.cache, cacheKeyID)
 
 	return nil
 }

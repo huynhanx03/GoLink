@@ -9,7 +9,7 @@ import (
 type LocalCache[K comparable, V any] interface {
 	Get(key K) (V, bool)
 	Set(key K, value V, cost int64) bool
-	Del(key K)
+	Delete(key K)
 	Clear()
 	Close()
 }

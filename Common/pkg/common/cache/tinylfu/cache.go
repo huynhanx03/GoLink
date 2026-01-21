@@ -159,7 +159,7 @@ func (c *Cache[K, V]) SetWithTTL(key K, value V, cost int64, ttl time.Duration) 
 }
 
 // Del removes a value from the cache.
-func (c *Cache[K, V]) Del(key K) {
+func (c *Cache[K, V]) Delete(key K) {
 	if c.isClosed.Load() {
 		return
 	}

@@ -16,6 +16,7 @@ type ResourceRepository interface {
 	Create(ctx context.Context, e *entity.Resource) error
 	Update(ctx context.Context, e *entity.Resource) error
 	Delete(ctx context.Context, id int) error
+	FindByIDs(ctx context.Context, ids []int) ([]*entity.Resource, error)
 	Exists(ctx context.Context, id int) (bool, error)
 }
 

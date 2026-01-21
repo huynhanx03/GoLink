@@ -7,6 +7,7 @@ import (
 	d "go-link/common/pkg/dto"
 
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"go-link/identity/internal/adapters/driven/db/ent/generate/permission"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
@@ -84,4 +85,20 @@ func (r *PermissionRepository) Delete(ctx context.Context, id int) error {
 // Exists checks if a permission exists by ID.
 func (r *PermissionRepository) Exists(ctx context.Context, id int) (bool, error) {
 	return r.repo.Exists(ctx, id)
+}
+
+// FindByRoleIDs retrieves permissions for a list of role IDs.
+func (r *PermissionRepository) FindByRoleIDs(ctx context.Context, roleIDs []int) ([]*entity.Permission, error) {
+	models, err := r.client.Query().
+		Where(permission.RoleIDIn(roleIDs...)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	entities := make([]*entity.Permission, len(models))
+	for i, m := range models {
+		entities[i] = mapper.ToPermissionEntity(m)
+	}
+	return entities, nil
 }
