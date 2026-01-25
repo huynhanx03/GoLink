@@ -3,7 +3,7 @@ package di
 import (
 	"go-link/common/pkg/common/cache"
 	userDB "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	"go-link/identity/internal/adapters/driver/http"
 	"go-link/identity/internal/core/service"
 	"go-link/identity/internal/ports"
@@ -15,12 +15,12 @@ type UserContainer struct {
 	Handler    http.UserHandler
 }
 
-func InitUserRepository(client *generate.Client) ports.UserRepository {
+func InitUserRepository(client *dbEnt.EntClient) ports.UserRepository {
 	return userDB.NewUserRepository(client)
 }
 
 func InitUserDependencies(
-	client *generate.Client,
+	client *dbEnt.EntClient,
 	repo ports.UserRepository,
 	authService ports.AuthenticationService,
 	credentialRepo ports.CredentialRepository,

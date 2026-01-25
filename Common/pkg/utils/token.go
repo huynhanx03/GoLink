@@ -20,13 +20,13 @@ const (
 // Claims extends standard jwt.Claims
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID    int      `json:"sub_int"`
-	Username  string   `json:"username"`
-	IsAdmin   bool     `json:"is_admin"`
-	TenantID  int      `json:"tid,omitempty"`
-	TierID    int      `json:"tier_id,omitempty"`
-	RoleLevel int      `json:"role_level,omitempty"`
-	Roles     []string `json:"roles,omitempty"`
+	UserID          int       `json:"sub_int"`
+	Username        string    `json:"username"`
+	IsAdmin         bool      `json:"is_admin"`
+	TenantID        int       `json:"tid,omitempty"`
+	TierID          int       `json:"tier_id,omitempty"`
+	RoleLevel       int       `json:"role_level,omitempty"`
+	Roles           []string  `json:"roles,omitempty"`
 	PermissionsBlob string    `json:"p,omitempty"`
 	Type            TokenType `json:"type"`
 }

@@ -16,7 +16,8 @@ type Domain struct {
 // Mixin of the Domain.
 func (Domain) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

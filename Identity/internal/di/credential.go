@@ -2,7 +2,7 @@ package di
 
 import (
 	db "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	"go-link/identity/internal/ports"
 )
 
@@ -12,7 +12,7 @@ type CredentialContainer struct {
 }
 
 // InitCredentialDependencies initializes credential dependencies.
-func InitCredentialDependencies(client *generate.Client) CredentialContainer {
+func InitCredentialDependencies(client *dbEnt.EntClient) CredentialContainer {
 	repository := db.NewCredentialRepository(client)
 
 	return CredentialContainer{

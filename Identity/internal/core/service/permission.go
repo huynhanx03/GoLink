@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
@@ -12,6 +11,8 @@ import (
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
+
+const permissionServiceName = "PermissionService"
 
 type permissionService struct {
 	permissionRepo ports.PermissionRepository
@@ -27,7 +28,7 @@ func NewPermissionService(permissionRepo ports.PermissionRepository, cacheServic
 func (s *permissionService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*dto.PermissionResponse], error) {
 	permissions, err := s.permissionRepo.Find(ctx, opts)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to find permissions", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if permissions.Records == nil {
@@ -53,7 +54,7 @@ func (s *permissionService) Find(ctx context.Context, opts *d.QueryOptions) (*d.
 func (s *permissionService) Get(ctx context.Context, id int) (*dto.PermissionResponse, error) {
 	permission, err := s.permissionRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get permission", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	return mapper.ToPermissionResponse(permission), nil
@@ -64,7 +65,7 @@ func (s *permissionService) Create(ctx context.Context, req *dto.CreatePermissio
 	permission := mapper.ToPermissionEntityFromCreate(req)
 
 	if err := s.permissionRepo.Create(ctx, permission); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create permission", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	// Invalidate Permission Config Version
@@ -79,7 +80,7 @@ func (s *permissionService) Create(ctx context.Context, req *dto.CreatePermissio
 func (s *permissionService) Update(ctx context.Context, id int, req *dto.UpdatePermissionRequest) (*dto.PermissionResponse, error) {
 	permission, err := s.permissionRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get permission", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if req.Description != nil {
@@ -91,7 +92,7 @@ func (s *permissionService) Update(ctx context.Context, id int, req *dto.UpdateP
 
 	permission.ID = id
 	if err := s.permissionRepo.Update(ctx, permission); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update permission", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	// Invalidate Permission Config Version
@@ -106,15 +107,15 @@ func (s *permissionService) Update(ctx context.Context, id int, req *dto.UpdateP
 func (s *permissionService) Delete(ctx context.Context, id int) error {
 	exists, err := s.permissionRepo.Exists(ctx, id)
 	if err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check permission exists", http.StatusInternalServerError)
+		return err
 	}
 
 	if !exists {
-		return apperr.New(response.CodeNotFound, "permission not found", http.StatusNotFound, nil)
+		return NewError(permissionServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.permissionRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete permission", http.StatusInternalServerError)
+		return err
 	}
 
 	// Invalidate Permission Config Version

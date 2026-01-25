@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 
@@ -15,6 +14,8 @@ import (
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
+
+const tenantServiceName = "TenantService"
 
 type tenantService struct {
 	tenantRepo ports.TenantRepository
@@ -35,7 +36,7 @@ func (s *tenantService) Get(ctx context.Context, id int) (*dto.TenantResponse, e
 
 	tenant, err := s.tenantRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get tenant", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	cache.SetLocal(s.cache, cacheKey, tenant, constant.CacheCostID)
@@ -47,7 +48,7 @@ func (s *tenantService) Create(ctx context.Context, req *dto.CreateTenantRequest
 	tenant := mapper.ToTenantEntityFromCreate(req)
 
 	if err := s.tenantRepo.Create(ctx, tenant); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create tenant", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	return mapper.ToTenantResponse(tenant), nil
@@ -57,7 +58,7 @@ func (s *tenantService) Create(ctx context.Context, req *dto.CreateTenantRequest
 func (s *tenantService) Update(ctx context.Context, id int, req *dto.UpdateTenantRequest) (*dto.TenantResponse, error) {
 	tenant, err := s.tenantRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get tenant", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if req.Name != nil {
@@ -69,7 +70,7 @@ func (s *tenantService) Update(ctx context.Context, id int, req *dto.UpdateTenan
 
 	tenant.ID = id
 	if err := s.tenantRepo.Update(ctx, tenant); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update tenant", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	cacheKeyID := constant.CacheKeyPrefixTenantID + strconv.Itoa(id)
@@ -82,15 +83,15 @@ func (s *tenantService) Update(ctx context.Context, id int, req *dto.UpdateTenan
 func (s *tenantService) Delete(ctx context.Context, id int) error {
 	exists, err := s.tenantRepo.Exists(ctx, id)
 	if err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check tenant exists", http.StatusInternalServerError)
+		return err
 	}
 
 	if !exists {
-		return apperr.New(response.CodeNotFound, "tenant not found", http.StatusNotFound, nil)
+		return NewError(tenantServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.tenantRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete tenant", http.StatusInternalServerError)
+		return err
 	}
 
 	// Invalidate Cache

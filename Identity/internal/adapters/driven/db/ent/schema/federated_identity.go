@@ -17,7 +17,8 @@ type FederatedIdentity struct {
 // Mixin of the FederatedIdentity.
 func (FederatedIdentity) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

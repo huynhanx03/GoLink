@@ -5,12 +5,12 @@ import (
 	"go-link/common/pkg/logger"
 	"go-link/common/pkg/settings"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 )
 
 var (
 	Config    settings.Config
-	Logger    *logger.LoggerZap
-	EntClient *generate.Client
+	LoggerZap *logger.LoggerZap
+	EntClient *dbEnt.EntClient
 	Tinylfu   cache.LocalCache[string, any]
 )

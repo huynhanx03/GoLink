@@ -6,6 +6,7 @@ import (
 	"go-link/common/pkg/database/ent"
 
 	"go-link/identity/global"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 )
 
@@ -17,9 +18,6 @@ func SetupEnt() {
 	}
 
 	client := generate.NewClient(generate.Driver(driver))
-	// if err := client.Schema.Create(context.Background()); err != nil {
-	// 	log.Fatalf("failed creating schema resources: %v", err)
-	// }
 
-	global.EntClient = client
+	global.EntClient = dbEnt.WrapClient(client, global.LoggerZap.Logger)
 }

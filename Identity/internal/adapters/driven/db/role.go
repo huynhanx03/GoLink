@@ -3,9 +3,13 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/role"
 	"go-link/identity/internal/adapters/driven/db/mapper"
@@ -13,134 +17,153 @@ import (
 	"go-link/identity/internal/ports"
 )
 
+const roleRepoName = "RoleRepository"
+
 type RoleRepository struct {
-	repo   *ent.BaseRepository[generate.Role, *generate.Role, int]
-	client *generate.RoleClient
+	client *dbEnt.EntClient
 }
 
-// NewRoleRepository creates a new RoleRepository instance.
-func NewRoleRepository(client interface{}) ports.RoleRepository {
-	entClient := client.(*generate.Client)
-	return &RoleRepository{
-		repo:   ent.NewBaseRepository[generate.Role, *generate.Role, int](client),
-		client: entClient.Role,
-	}
+func NewRoleRepository(client *dbEnt.EntClient) ports.RoleRepository {
+	return &RoleRepository{client: client}
 }
 
-// FindAll retrieves all roles.
 func (r *RoleRepository) FindAll(ctx context.Context) ([]*entity.Role, error) {
-	models, err := r.repo.FindAll(ctx)
+	records, err := r.client.DB(ctx).Role.Query().All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, roleRepoName)
 	}
 
-	entities := make([]*entity.Role, len(models))
-	for i, m := range models {
+	entities := make([]*entity.Role, len(records))
+	for i, m := range records {
 		entities[i] = mapper.ToRoleEntity(m)
 	}
 	return entities, nil
 }
 
-// Find retrieves roles with pagination.
 func (r *RoleRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.Role], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.Role.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
 
-	entities := make([]*entity.Role, len(*result.Records))
-	for i, record := range *result.Records {
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, roleRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, roleRepoName)
+	}
+
+	entities := make([]*entity.Role, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToRoleEntity(record)
 	}
 
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.Role]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Get retrieves a role by ID.
 func (r *RoleRepository) Get(ctx context.Context, id int) (*entity.Role, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).Role.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, roleRepoName)
 	}
 	return mapper.ToRoleEntity(record), nil
 }
 
-// GetByName retrieves a role by name.
 func (r *RoleRepository) GetByName(ctx context.Context, name string) (*entity.Role, error) {
-	record, err := r.client.Query().
+	record, err := r.client.DB(ctx).Role.Query().
 		Where(role.Name(name)).
 		Only(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, roleRepoName)
 	}
 	return mapper.ToRoleEntity(record), nil
 }
 
-// Create creates a new role.
 func (r *RoleRepository) Create(ctx context.Context, e *entity.Role) error {
-	model := mapper.ToRoleModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateRole(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, roleRepoName)
 	}
 
-	if created := mapper.ToRoleEntity(model); created != nil {
+	if created := mapper.ToRoleEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Update updates an existing role.
 func (r *RoleRepository) Update(ctx context.Context, e *entity.Role) error {
-	model := mapper.ToRoleModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdateRole(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, roleRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// UpdateBulk updates multiple roles.
 func (r *RoleRepository) UpdateBulk(ctx context.Context, entities []*entity.Role) error {
-	models := make([]*generate.Role, len(entities))
+	builders := make([]*generate.RoleCreate, len(entities))
 	for i, e := range entities {
-		models[i] = mapper.ToRoleModel(e)
+		builders[i] = builder.BuildCreateRole(ctx, e)
 	}
 
-	if err := r.repo.UpdateBulk(ctx, models); err != nil {
-		return err
-	}
-
-	for i, m := range models {
-		entities[i].UpdatedAt = m.UpdatedAt
-	}
-
-	return nil
+	err := r.client.DB(ctx).Role.CreateBulk(builders...).
+		OnConflict().
+		UpdateNewValues().
+		Exec(ctx)
+	return commonEnt.MapEntError(err, roleRepoName)
 }
 
-// Delete removes a role by ID.
 func (r *RoleRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).Role.DeleteOneID(id).Exec(ctx), roleRepoName)
 }
 
-// Exists checks if a role exists by ID.
 func (r *RoleRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).Role.Query().Where(role.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, roleRepoName)
 }
 
-// FindDescendants retrieves all descendant roles of a given role (inclusive).
 func (r *RoleRepository) FindDescendants(ctx context.Context, lft, rgt int) ([]*entity.Role, error) {
-	models, err := r.client.Query().
+	records, err := r.client.DB(ctx).Role.Query().
 		Where(role.LftGTE(lft), role.RgtLTE(rgt)).
 		All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, roleRepoName)
 	}
 
-	entities := make([]*entity.Role, len(models))
-	for i, m := range models {
+	entities := make([]*entity.Role, len(records))
+	for i, m := range records {
 		entities[i] = mapper.ToRoleEntity(m)
 	}
 	return entities, nil

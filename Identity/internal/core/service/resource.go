@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
@@ -12,6 +11,8 @@ import (
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
+
+const resourceServiceName = "ResourceService"
 
 type resourceService struct {
 	resourceRepo ports.ResourceRepository
@@ -27,7 +28,7 @@ func NewResourceService(resourceRepo ports.ResourceRepository, cacheService port
 func (s *resourceService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*dto.ResourceResponse], error) {
 	resources, err := s.resourceRepo.Find(ctx, opts)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to find resources", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if resources.Records == nil {
@@ -53,7 +54,7 @@ func (s *resourceService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Pa
 func (s *resourceService) Get(ctx context.Context, id int) (*dto.ResourceResponse, error) {
 	resource, err := s.resourceRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get resource", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	return mapper.ToResourceResponse(resource), nil
@@ -64,7 +65,7 @@ func (s *resourceService) Create(ctx context.Context, req *dto.CreateResourceReq
 	resource := mapper.ToResourceEntityFromCreate(req)
 
 	if err := s.resourceRepo.Create(ctx, resource); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create resource", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	// Invalidate Permission Config Version
@@ -79,7 +80,7 @@ func (s *resourceService) Create(ctx context.Context, req *dto.CreateResourceReq
 func (s *resourceService) Update(ctx context.Context, id int, req *dto.UpdateResourceRequest) (*dto.ResourceResponse, error) {
 	resource, err := s.resourceRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get resource", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if req.Key != nil {
@@ -91,7 +92,7 @@ func (s *resourceService) Update(ctx context.Context, id int, req *dto.UpdateRes
 
 	resource.ID = id
 	if err := s.resourceRepo.Update(ctx, resource); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update resource", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	// Invalidate Permission Config Version
@@ -106,15 +107,15 @@ func (s *resourceService) Update(ctx context.Context, id int, req *dto.UpdateRes
 func (s *resourceService) Delete(ctx context.Context, id int) error {
 	exists, err := s.resourceRepo.Exists(ctx, id)
 	if err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check resource exists", http.StatusInternalServerError)
+		return err
 	}
 
 	if !exists {
-		return apperr.New(response.CodeNotFound, "resource not found", http.StatusNotFound, nil)
+		return NewError(resourceServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.resourceRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete resource", http.StatusInternalServerError)
+		return err
 	}
 
 	// Invalidate Permission Config Version

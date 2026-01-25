@@ -3,8 +3,10 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/userattributevalue"
 	"go-link/identity/internal/adapters/driven/db/mapper"
@@ -12,37 +14,31 @@ import (
 	"go-link/identity/internal/ports"
 )
 
+const userAttrValueRepoName = "UserAttributeValueRepository"
+
 type UserAttributeValueRepository struct {
-	repo   *ent.BaseRepository[generate.UserAttributeValue, *generate.UserAttributeValue, int]
-	client *generate.UserAttributeValueClient
+	client *dbEnt.EntClient
 }
 
-// NewUserAttributeValueRepository creates a new UserAttributeValueRepository instance.
-func NewUserAttributeValueRepository(client interface{}) ports.UserAttributeValueRepository {
-	entClient := client.(*generate.Client)
-	return &UserAttributeValueRepository{
-		repo:   ent.NewBaseRepository[generate.UserAttributeValue, *generate.UserAttributeValue, int](client),
-		client: entClient.UserAttributeValue,
-	}
+func NewUserAttributeValueRepository(client *dbEnt.EntClient) ports.UserAttributeValueRepository {
+	return &UserAttributeValueRepository{client: client}
 }
 
-// Get retrieves a user attribute value by ID.
 func (r *UserAttributeValueRepository) Get(ctx context.Context, id int) (*entity.UserAttributeValue, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).UserAttributeValue.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, userAttrValueRepoName)
 	}
 	return mapper.ToUserAttributeValueEntity(record), nil
 }
 
-// GetByUserID retrieves all attribute values for a user.
 func (r *UserAttributeValueRepository) GetByUserID(ctx context.Context, userID int) ([]*entity.UserAttributeValue, error) {
-	records, err := r.client.Query().
+	records, err := r.client.DB(ctx).UserAttributeValue.Query().
 		Where(userattributevalue.UserID(userID)).
 		WithDefinition().
 		All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, userAttrValueRepoName)
 	}
 	entities := make([]*entity.UserAttributeValue, len(records))
 	for i, record := range records {
@@ -51,55 +47,56 @@ func (r *UserAttributeValueRepository) GetByUserID(ctx context.Context, userID i
 	return entities, nil
 }
 
-// Create creates a new user attribute value.
 func (r *UserAttributeValueRepository) Create(ctx context.Context, e *entity.UserAttributeValue) error {
-	model := mapper.ToUserAttributeValueModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateUserAttributeValue(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, userAttrValueRepoName)
 	}
 
-	if created := mapper.ToUserAttributeValueEntity(model); created != nil {
+	if created := mapper.ToUserAttributeValueEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// CreateBulk creates multiple user attribute values.
 func (r *UserAttributeValueRepository) CreateBulk(ctx context.Context, entities []*entity.UserAttributeValue) error {
-	models := make([]*generate.UserAttributeValue, len(entities))
+	builders := make([]*generate.UserAttributeValueCreate, len(entities))
 	for i, e := range entities {
-		models[i] = mapper.ToUserAttributeValueModel(e)
+		builders[i] = builder.BuildCreateUserAttributeValue(ctx, e)
 	}
 
-	if err := r.repo.CreateBulk(ctx, models); err != nil {
-		return err
-	}
-
-	for i, m := range models {
-		if created := mapper.ToUserAttributeValueEntity(m); created != nil {
-			*entities[i] = *created
-		}
-	}
-	return nil
+	return commonEnt.MapEntError(r.client.DB(ctx).UserAttributeValue.CreateBulk(builders...).Exec(ctx), userAttrValueRepoName)
 }
 
-// Update updates an existing user attribute value.
+func (r *UserAttributeValueRepository) UpdateBulk(ctx context.Context, entities []*entity.UserAttributeValue) error {
+	builders := make([]*generate.UserAttributeValueCreate, len(entities))
+	for i, e := range entities {
+		builders[i] = builder.BuildCreateUserAttributeValue(ctx, e)
+	}
+
+	err := r.client.DB(ctx).UserAttributeValue.CreateBulk(builders...).
+		OnConflict().
+		UpdateNewValues().
+		Exec(ctx)
+	return commonEnt.MapEntError(err, userAttrValueRepoName)
+}
+
 func (r *UserAttributeValueRepository) Update(ctx context.Context, e *entity.UserAttributeValue) error {
-	model := mapper.ToUserAttributeValueModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdateUserAttributeValue(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, userAttrValueRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// Delete removes a user attribute value by ID.
 func (r *UserAttributeValueRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).UserAttributeValue.DeleteOneID(id).Exec(ctx), userAttrValueRepoName)
 }
 
-// DeleteByUserID removes all attribute values for a user.
 func (r *UserAttributeValueRepository) DeleteByUserID(ctx context.Context, userID int) error {
-	_, err := r.client.Delete().Where(userattributevalue.UserID(userID)).Exec(ctx)
-	return err
+	_, err := r.client.DB(ctx).UserAttributeValue.Delete().Where(userattributevalue.UserID(userID)).Exec(ctx)
+	return commonEnt.MapEntError(err, userAttrValueRepoName)
 }

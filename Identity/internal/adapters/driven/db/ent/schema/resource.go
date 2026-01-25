@@ -16,7 +16,8 @@ type Resource struct {
 // Mixin of the Resource.
 func (Resource) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

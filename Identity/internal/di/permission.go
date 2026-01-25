@@ -2,7 +2,7 @@ package di
 
 import (
 	db "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	driverHttp "go-link/identity/internal/adapters/driver/http"
 	"go-link/identity/internal/core/service"
 	"go-link/identity/internal/ports"
@@ -17,7 +17,7 @@ type PermissionContainer struct {
 
 // InitPermissionDependencies initializes permission dependencies.
 func InitPermissionDependencies(
-	client *generate.Client,
+	client *dbEnt.EntClient,
 	cacheService ports.CacheService,
 ) PermissionContainer {
 	repository := db.NewPermissionRepository(client)

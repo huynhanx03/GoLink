@@ -5,15 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
+	"go-link/identity/global"
 	"go-link/identity/internal/constant"
 	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/core/entity"
-	"go-link/identity/internal/pkg/utils"
 	"go-link/identity/internal/ports"
+	"go-link/identity/pkg/utils"
 )
+
+const userServiceName = "UserService"
 
 type userService struct {
 	userRepo         ports.UserRepository
@@ -53,15 +55,15 @@ func NewUserService(
 func (s *userService) Delete(ctx context.Context, id int) error {
 	exists, err := s.userRepo.Exists(ctx, id)
 	if err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check user exists", http.StatusInternalServerError)
+		return err
 	}
 
 	if !exists {
-		return apperr.New(response.CodeNotFound, "user not found", http.StatusNotFound, nil)
+		return NewError(userServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.userRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete user", http.StatusInternalServerError)
+		return err
 	}
 
 	return nil
@@ -71,7 +73,7 @@ func (s *userService) Delete(ctx context.Context, id int) error {
 func (s *userService) UpdateProfile(ctx context.Context, userID int, req *dto.UpdateProfileRequest) (*dto.ProfileResponse, error) {
 	user, err := s.userRepo.Get(ctx, userID)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get user", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	attrUpdates := map[string]string{
@@ -81,50 +83,62 @@ func (s *userService) UpdateProfile(ctx context.Context, userID int, req *dto.Up
 		constant.AttributeKeyBirthday:  req.Birthday,
 	}
 
-	existingAttrs, err := s.attrValueRepo.GetByUserID(ctx, userID)
-	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get user attributes", http.StatusInternalServerError)
-	}
-
-	existingAttrMap := make(map[int]*entity.UserAttributeValue)
-	for _, attr := range existingAttrs {
-		existingAttrMap[attr.AttributeID] = attr
-	}
-
-	var newAttrs []*entity.UserAttributeValue
-
-	for key, value := range attrUpdates {
-		if value == "" {
-			continue
-		}
-
-		def, err := utils.GetAttributeDefinition(ctx, key, s.attrDefRepo, s.cache)
+	err = global.EntClient.DoInTx(ctx, func(ctx context.Context) error {
+		existingAttrs, err := s.attrValueRepo.GetByUserID(ctx, userID)
 		if err != nil {
-			return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get attribute definition: "+key, http.StatusInternalServerError)
+			return err
 		}
 
-		if existingAttr, ok := existingAttrMap[def.ID]; ok {
-			// Update existing
-			if existingAttr.Value != value {
-				existingAttr.Value = value
-				if err := s.attrValueRepo.Update(ctx, existingAttr); err != nil {
-					return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update attribute: "+key, http.StatusInternalServerError)
-				}
+		existingAttrMap := make(map[int]*entity.UserAttributeValue)
+		for _, attr := range existingAttrs {
+			existingAttrMap[attr.AttributeID] = attr
+		}
+
+		var newAttrs []*entity.UserAttributeValue
+		var updateAttrs []*entity.UserAttributeValue
+
+		for key, value := range attrUpdates {
+			if value == "" {
+				continue
 			}
-		} else {
-			// Create new
-			newAttrs = append(newAttrs, &entity.UserAttributeValue{
-				UserID:      user.ID,
-				AttributeID: def.ID,
-				Value:       value,
-			})
-		}
-	}
 
-	if len(newAttrs) > 0 {
-		if err := s.attrValueRepo.CreateBulk(ctx, newAttrs); err != nil {
-			return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create user attributes", http.StatusInternalServerError)
+			def, err := utils.GetAttributeDefinition(ctx, key, s.attrDefRepo, s.cache)
+			if err != nil {
+				return err
+			}
+
+			if existingAttr, ok := existingAttrMap[def.ID]; ok {
+				// Update existing
+				if existingAttr.Value != value {
+					existingAttr.Value = value
+					updateAttrs = append(updateAttrs, existingAttr)
+				}
+			} else {
+				// Create new
+				newAttrs = append(newAttrs, &entity.UserAttributeValue{
+					UserID:      user.ID,
+					AttributeID: def.ID,
+					Value:       value,
+				})
+			}
 		}
+
+		if len(updateAttrs) > 0 {
+			if err := s.attrValueRepo.UpdateBulk(ctx, updateAttrs); err != nil {
+				return err
+			}
+		}
+
+		if len(newAttrs) > 0 {
+			if err := s.attrValueRepo.CreateBulk(ctx, newAttrs); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	gender, _ := strconv.Atoi(attrUpdates[constant.AttributeKeyGender])
@@ -142,12 +156,12 @@ func (s *userService) UpdateProfile(ctx context.Context, userID int, req *dto.Up
 func (s *userService) GetProfile(ctx context.Context, userID int) (*dto.ProfileResponse, error) {
 	user, err := s.userRepo.Get(ctx, userID)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get user", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	existingAttrs, err := s.attrValueRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get user attributes", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	// Helper to get value

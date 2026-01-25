@@ -16,5 +16,5 @@ func SetupLogger() {
 		Compress:   global.Config.Logger.Compress,
 	}
 
-	global.Logger = logger.NewLogger(config)
+	global.LoggerZap = logger.NewLogger(config)
 }

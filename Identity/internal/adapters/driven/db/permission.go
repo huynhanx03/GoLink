@@ -3,101 +3,130 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/permission"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
 )
 
+const permissionRepoName = "PermissionRepository"
+
 type PermissionRepository struct {
-	repo   *ent.BaseRepository[generate.Permission, *generate.Permission, int]
-	client *generate.PermissionClient
+	client *dbEnt.EntClient
 }
 
-// NewPermissionRepository creates a new PermissionRepository instance.
-func NewPermissionRepository(client interface{}) ports.PermissionRepository {
-	entClient := client.(*generate.Client)
-	return &PermissionRepository{
-		repo:   ent.NewBaseRepository[generate.Permission, *generate.Permission, int](client),
-		client: entClient.Permission,
-	}
+func NewPermissionRepository(client *dbEnt.EntClient) ports.PermissionRepository {
+	return &PermissionRepository{client: client}
 }
 
-// Find retrieves permissions with pagination.
 func (r *PermissionRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.Permission], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.Permission.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
 
-	entities := make([]*entity.Permission, len(*result.Records))
-	for i, record := range *result.Records {
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, permissionRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, permissionRepoName)
+	}
+
+	entities := make([]*entity.Permission, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToPermissionEntity(record)
 	}
 
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.Permission]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Get retrieves a permission by ID.
 func (r *PermissionRepository) Get(ctx context.Context, id int) (*entity.Permission, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).Permission.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, permissionRepoName)
 	}
 	return mapper.ToPermissionEntity(record), nil
 }
 
-// Create creates a new permission.
 func (r *PermissionRepository) Create(ctx context.Context, e *entity.Permission) error {
-	model := mapper.ToPermissionModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreatePermission(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, permissionRepoName)
 	}
 
-	if created := mapper.ToPermissionEntity(model); created != nil {
+	if created := mapper.ToPermissionEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Update updates an existing permission.
 func (r *PermissionRepository) Update(ctx context.Context, e *entity.Permission) error {
-	model := mapper.ToPermissionModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdatePermission(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, permissionRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// Delete removes a permission by ID.
 func (r *PermissionRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).Permission.DeleteOneID(id).Exec(ctx), permissionRepoName)
 }
 
-// Exists checks if a permission exists by ID.
 func (r *PermissionRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).Permission.Query().Where(permission.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, permissionRepoName)
 }
 
-// FindByRoleIDs retrieves permissions for a list of role IDs.
 func (r *PermissionRepository) FindByRoleIDs(ctx context.Context, roleIDs []int) ([]*entity.Permission, error) {
-	models, err := r.client.Query().
+	records, err := r.client.DB(ctx).Permission.Query().
 		Where(permission.RoleIDIn(roleIDs...)).
 		All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, permissionRepoName)
 	}
 
-	entities := make([]*entity.Permission, len(models))
-	for i, m := range models {
+	entities := make([]*entity.Permission, len(records))
+	for i, m := range records {
 		entities[i] = mapper.ToPermissionEntity(m)
 	}
 	return entities, nil

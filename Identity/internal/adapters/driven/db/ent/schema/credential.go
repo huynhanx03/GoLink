@@ -16,7 +16,8 @@ type Credential struct {
 // Mixin of the Credential.
 func (Credential) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

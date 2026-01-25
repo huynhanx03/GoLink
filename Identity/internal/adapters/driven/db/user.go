@@ -3,102 +3,131 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/user"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
 )
 
+const userRepoName = "UserRepository"
+
 type UserRepository struct {
-	repo   *ent.BaseRepository[generate.User, *generate.User, int]
-	client *generate.UserClient
+	client *dbEnt.EntClient
 }
 
-// NewUserRepository creates a new UserRepository instance.
-func NewUserRepository(client interface{}) ports.UserRepository {
-	entClient := client.(*generate.Client)
-	return &UserRepository{
-		repo:   ent.NewBaseRepository[generate.User, *generate.User, int](client),
-		client: entClient.User,
-	}
+func NewUserRepository(client *dbEnt.EntClient) ports.UserRepository {
+	return &UserRepository{client: client}
 }
 
-// Find retrieves users with pagination.
 func (r *UserRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.User], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.User.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
 
-	entities := make([]*entity.User, len(*result.Records))
-	for i, record := range *result.Records {
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, userRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, userRepoName)
+	}
+
+	entities := make([]*entity.User, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToUserEntity(record)
 	}
 
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.User]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Get retrieves a user by ID.
 func (r *UserRepository) Get(ctx context.Context, id int) (*entity.User, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).User.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, userRepoName)
 	}
 	return mapper.ToUserEntity(record), nil
 }
 
-// GetByUsername retrieves a user by username.
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
-	record, err := r.client.Query().
+	record, err := r.client.DB(ctx).User.Query().
 		Where(user.Username(username)).
 		Only(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, userRepoName)
 	}
 	return mapper.ToUserEntity(record), nil
 }
 
-// Create creates a new user.
 func (r *UserRepository) Create(ctx context.Context, e *entity.User) error {
-	model := mapper.ToUserModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateUser(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, userRepoName)
 	}
 
-	if created := mapper.ToUserEntity(model); created != nil {
+	if created := mapper.ToUserEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Update updates an existing user.
 func (r *UserRepository) Update(ctx context.Context, e *entity.User) error {
-	model := mapper.ToUserModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdateUser(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, userRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// Delete removes a user by ID.
 func (r *UserRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).User.DeleteOneID(id).Exec(ctx), userRepoName)
 }
 
-// Exists checks if a user exists by ID.
 func (r *UserRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).User.Query().Where(user.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, userRepoName)
 }
 
-// ExistsByUsername checks if a user exists by username.
 func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) (bool, error) {
-	return r.client.Query().Where(user.Username(username)).Exist(ctx)
+	exists, err := r.client.DB(ctx).User.Query().Where(user.Username(username)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, userRepoName)
 }

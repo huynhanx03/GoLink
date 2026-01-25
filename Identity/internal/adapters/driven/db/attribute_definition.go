@@ -3,55 +3,51 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/attributedefinition"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
 )
 
+const attrDefRepoName = "AttributeDefinitionRepository"
+
 type AttributeDefinitionRepository struct {
-	repo   *ent.BaseRepository[generate.AttributeDefinition, *generate.AttributeDefinition, int]
-	client *generate.AttributeDefinitionClient
+	client *dbEnt.EntClient
 }
 
-// NewAttributeDefinitionRepository creates a new AttributeDefinitionRepository instance.
-func NewAttributeDefinitionRepository(client interface{}) ports.AttributeDefinitionRepository {
-	entClient := client.(*generate.Client)
-	return &AttributeDefinitionRepository{
-		repo:   ent.NewBaseRepository[generate.AttributeDefinition, *generate.AttributeDefinition, int](client),
-		client: entClient.AttributeDefinition,
-	}
+func NewAttributeDefinitionRepository(client *dbEnt.EntClient) ports.AttributeDefinitionRepository {
+	return &AttributeDefinitionRepository{client: client}
 }
 
-// Get retrieves an attribute definition by ID.
 func (r *AttributeDefinitionRepository) Get(ctx context.Context, id int) (*entity.AttributeDefinition, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).AttributeDefinition.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, attrDefRepoName)
 	}
 	return mapper.ToAttributeDefinitionEntity(record), nil
 }
 
-// GetByKey retrieves an attribute definition by key.
 func (r *AttributeDefinitionRepository) GetByKey(ctx context.Context, key string) (*entity.AttributeDefinition, error) {
-	record, err := r.client.Query().
+	record, err := r.client.DB(ctx).AttributeDefinition.Query().
 		Where(attributedefinition.Key(key)).
 		Only(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, attrDefRepoName)
 	}
 	return mapper.ToAttributeDefinitionEntity(record), nil
 }
 
-// FindAll retrieves all attribute definitions.
 func (r *AttributeDefinitionRepository) FindAll(ctx context.Context) ([]*entity.AttributeDefinition, error) {
-	records, err := r.repo.FindAll(ctx)
+	records, err := r.client.DB(ctx).AttributeDefinition.Query().All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, attrDefRepoName)
 	}
 	entities := make([]*entity.AttributeDefinition, len(records))
 	for i, record := range records {
@@ -60,51 +56,85 @@ func (r *AttributeDefinitionRepository) FindAll(ctx context.Context) ([]*entity.
 	return entities, nil
 }
 
-// Find retrieves attribute definitions with pagination.
 func (r *AttributeDefinitionRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.AttributeDefinition], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.AttributeDefinition.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
-	entities := make([]*entity.AttributeDefinition, len(*result.Records))
-	for i, record := range *result.Records {
+
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, attrDefRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, attrDefRepoName)
+	}
+
+	entities := make([]*entity.AttributeDefinition, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToAttributeDefinitionEntity(record)
 	}
+
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.AttributeDefinition]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Create creates a new attribute definition.
 func (r *AttributeDefinitionRepository) Create(ctx context.Context, e *entity.AttributeDefinition) error {
-	model := mapper.ToAttributeDefinitionModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateAttributeDefinition(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, attrDefRepoName)
 	}
 
-	if created := mapper.ToAttributeDefinitionEntity(model); created != nil {
+	if created := mapper.ToAttributeDefinitionEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Update updates an existing attribute definition.
 func (r *AttributeDefinitionRepository) Update(ctx context.Context, e *entity.AttributeDefinition) error {
-	model := mapper.ToAttributeDefinitionModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdateAttributeDefinition(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, attrDefRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// Delete removes an attribute definition by ID.
 func (r *AttributeDefinitionRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).AttributeDefinition.DeleteOneID(id).Exec(ctx), attrDefRepoName)
 }
 
-// Exists checks if an attribute definition exists by ID.
 func (r *AttributeDefinitionRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).AttributeDefinition.Query().Where(attributedefinition.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, attrDefRepoName)
 }

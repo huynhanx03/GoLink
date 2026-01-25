@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
@@ -16,6 +15,8 @@ import (
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
+
+const domainServiceName = "DomainService"
 
 type domainService struct {
 	domainRepo ports.DomainRepository
@@ -31,7 +32,7 @@ func NewDomainService(domainRepo ports.DomainRepository, cache cache.LocalCache[
 func (s *domainService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*dto.DomainResponse], error) {
 	domains, err := s.domainRepo.Find(ctx, opts)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to find domains", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if domains.Records == nil {
@@ -62,7 +63,7 @@ func (s *domainService) Get(ctx context.Context, id int) (*dto.DomainResponse, e
 
 	domain, err := s.domainRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get domain", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	cache.SetLocal(s.cache, cacheKey, domain, constant.CacheCostID)
@@ -74,7 +75,7 @@ func (s *domainService) Create(ctx context.Context, req *dto.CreateDomainRequest
 	domain := mapper.ToDomainEntityFromCreate(req)
 	domain.IsVerified = false
 	if err := s.domainRepo.Create(ctx, domain); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create domain", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	return mapper.ToDomainResponse(domain), nil
@@ -84,7 +85,7 @@ func (s *domainService) Create(ctx context.Context, req *dto.CreateDomainRequest
 func (s *domainService) Update(ctx context.Context, id int, req *dto.UpdateDomainRequest) (*dto.DomainResponse, error) {
 	domain, err := s.domainRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get domain", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if req.Domain != nil {
@@ -96,7 +97,7 @@ func (s *domainService) Update(ctx context.Context, id int, req *dto.UpdateDomai
 
 	domain.ID = id
 	if err := s.domainRepo.Update(ctx, domain); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update domain", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	// Invalidate Cache
@@ -110,19 +111,19 @@ func (s *domainService) Update(ctx context.Context, id int, req *dto.UpdateDomai
 func (s *domainService) Delete(ctx context.Context, id int) error {
 	exists, err := s.domainRepo.Exists(ctx, id)
 	if err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check domain exists", http.StatusInternalServerError)
+		return err
 	}
 
 	if !exists {
-		return apperr.New(response.CodeNotFound, "domain not found", http.StatusNotFound, nil)
+		return NewError(domainServiceName, response.CodeNotFound, "domain not found", http.StatusNotFound, nil)
 	}
 
 	if err := s.domainRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete domain", http.StatusInternalServerError)
+		return err
 	}
 
 	if err := s.domainRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete domain", http.StatusInternalServerError)
+		return err
 	}
 
 	// Invalidate Cache

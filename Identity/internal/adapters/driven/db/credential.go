@@ -3,100 +3,129 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/credential"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
 )
 
+const credentialRepoName = "CredentialRepository"
+
 type CredentialRepository struct {
-	repo   *ent.BaseRepository[generate.Credential, *generate.Credential, int]
-	client *generate.CredentialClient
+	client *dbEnt.EntClient
 }
 
-// NewCredentialRepository creates a new CredentialRepository instance.
-func NewCredentialRepository(client interface{}) ports.CredentialRepository {
-	entClient := client.(*generate.Client)
-	return &CredentialRepository{
-		repo:   ent.NewBaseRepository[generate.Credential, *generate.Credential, int](client),
-		client: entClient.Credential,
-	}
+func NewCredentialRepository(client *dbEnt.EntClient) ports.CredentialRepository {
+	return &CredentialRepository{client: client}
 }
 
-// Find retrieves credentials with pagination.
 func (r *CredentialRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.Credential], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.Credential.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
 
-	entities := make([]*entity.Credential, len(*result.Records))
-	for i, record := range *result.Records {
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, credentialRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, credentialRepoName)
+	}
+
+	entities := make([]*entity.Credential, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToCredentialEntity(record)
 	}
 
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.Credential]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Get retrieves a credential by ID.
 func (r *CredentialRepository) Get(ctx context.Context, id int) (*entity.Credential, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).Credential.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, credentialRepoName)
 	}
 	return mapper.ToCredentialEntity(record), nil
 }
 
-// GetByUserID retrieves a credential by user ID and type.
 func (r *CredentialRepository) GetByUserID(ctx context.Context, userID int, credType string) (*entity.Credential, error) {
-	record, err := r.client.Query().
+	record, err := r.client.DB(ctx).Credential.Query().
 		Where(
 			credential.UserID(userID),
 			credential.Type(credType),
 		).
 		Only(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, credentialRepoName)
 	}
 	return mapper.ToCredentialEntity(record), nil
 }
 
-// Create creates a new credential.
 func (r *CredentialRepository) Create(ctx context.Context, e *entity.Credential) error {
-	model := mapper.ToCredentialModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateCredential(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, credentialRepoName)
 	}
 
-	if created := mapper.ToCredentialEntity(model); created != nil {
+	if created := mapper.ToCredentialEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Update updates an existing credential.
 func (r *CredentialRepository) Update(ctx context.Context, e *entity.Credential) error {
-	model := mapper.ToCredentialModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdateCredential(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, credentialRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// Delete removes a credential by ID.
 func (r *CredentialRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).Credential.DeleteOneID(id).Exec(ctx), credentialRepoName)
 }
 
-// Exists checks if a credential exists by ID.
 func (r *CredentialRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).Credential.Query().Where(credential.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, credentialRepoName)
 }

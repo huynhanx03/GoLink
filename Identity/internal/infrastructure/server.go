@@ -73,13 +73,13 @@ func (s *Server) Run() error {
 
 	// Start server in a goroutine
 	go func() {
-		global.Logger.Info("Server starting",
+		global.LoggerZap.Info("Server starting",
 			zap.String("address", address),
 			zap.String("mode", global.Config.Server.Mode),
 		)
 
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			global.Logger.Fatal("Failed to start server", zap.Error(err))
+			global.LoggerZap.Fatal("Failed to start server", zap.Error(err))
 		}
 	}()
 
@@ -88,17 +88,17 @@ func (s *Server) Run() error {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	global.Logger.Info("Shutting down server...")
+	global.LoggerZap.Info("Shutting down server...")
 
 	// Graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		global.Logger.Error("Server forced to shutdown", zap.Error(err))
+		global.LoggerZap.Error("Server forced to shutdown", zap.Error(err))
 		return err
 	}
 
-	global.Logger.Info("Server exited")
+	global.LoggerZap.Info("Server exited")
 	return nil
 }

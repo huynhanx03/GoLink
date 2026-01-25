@@ -17,7 +17,8 @@ type Permission struct {
 // Mixin of the Permission.
 func (Permission) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

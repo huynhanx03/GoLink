@@ -16,7 +16,8 @@ type AttributeDefinition struct {
 // Mixin of the AttributeDefinition.
 func (AttributeDefinition) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

@@ -5,15 +5,17 @@ import (
 	"net/http"
 	"sort"
 
-	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
+	"go-link/identity/global"
 	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/core/mapper"
 	"go-link/identity/internal/ports"
 )
+
+const roleServiceName = "RoleService"
 
 type roleService struct {
 	roleRepo     ports.RoleRepository
@@ -29,7 +31,7 @@ func NewRoleService(roleRepo ports.RoleRepository, cacheService ports.CacheServi
 func (s *roleService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*dto.RoleResponse], error) {
 	roles, err := s.roleRepo.Find(ctx, opts)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to find roles", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if roles.Records == nil {
@@ -55,7 +57,7 @@ func (s *roleService) Find(ctx context.Context, opts *d.QueryOptions) (*d.Pagina
 func (s *roleService) Get(ctx context.Context, id int) (*dto.RoleResponse, error) {
 	role, err := s.roleRepo.Get(ctx, id)
 	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get role", http.StatusInternalServerError)
+		return nil, err
 	}
 
 	return mapper.ToRoleResponse(role), nil
@@ -65,12 +67,19 @@ func (s *roleService) Get(ctx context.Context, id int) (*dto.RoleResponse, error
 func (s *roleService) Create(ctx context.Context, req *dto.CreateRoleRequest) (*dto.RoleResponse, error) {
 	role := mapper.ToRoleEntityFromCreate(req)
 
-	if err := s.roleRepo.Create(ctx, role); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to create role"+err.Error(), http.StatusInternalServerError)
-	}
+	err := global.EntClient.DoInTx(ctx, func(ctx context.Context) error {
+		if err := s.roleRepo.Create(ctx, role); err != nil {
+			return err
+		}
 
-	if err := s.rebuildTree(ctx); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+		if err := s.rebuildTree(ctx); err != nil {
+			return NewError(roleServiceName, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError, err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	// Invalidate Permission Config Version
@@ -83,38 +92,47 @@ func (s *roleService) Create(ctx context.Context, req *dto.CreateRoleRequest) (*
 
 // Update updates an existing role.
 func (s *roleService) Update(ctx context.Context, id int, req *dto.UpdateRoleRequest) (*dto.RoleResponse, error) {
-	role, err := s.roleRepo.Get(ctx, id)
-	if err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to get role", http.StatusInternalServerError)
-	}
+	var role *entity.Role
+	err := global.EntClient.DoInTx(ctx, func(ctx context.Context) error {
+		var err error
+		role, err = s.roleRepo.Get(ctx, id)
+		if err != nil {
+			return err
+		}
 
-	if req.Name != nil {
-		role.Name = *req.Name
-	}
-	if req.Level != nil {
-		role.Level = *req.Level
-	}
+		if req.Name != nil {
+			role.Name = *req.Name
+		}
+		if req.Level != nil {
+			role.Level = *req.Level
+		}
 
-	parentChanged := false
-	if req.ParentID != nil {
-		if role.ParentID != *req.ParentID {
-			if *req.ParentID == id {
-				return nil, apperr.New(response.CodeInvalidID, "cannot set parent to self", http.StatusBadRequest, nil)
+		parentChanged := false
+		if req.ParentID != nil {
+			if role.ParentID != *req.ParentID {
+				if *req.ParentID == id {
+					return NewError(roleServiceName, response.CodeInvalidID, "cannot set parent to self", http.StatusBadRequest, nil)
+				}
+				role.ParentID = *req.ParentID
+				parentChanged = true
 			}
-			role.ParentID = *req.ParentID
-			parentChanged = true
 		}
-	}
 
-	role.ID = id
-	if err := s.roleRepo.Update(ctx, role); err != nil {
-		return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to update role", http.StatusInternalServerError)
-	}
-
-	if parentChanged {
-		if err := s.rebuildTree(ctx); err != nil {
-			return nil, apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+		role.ID = id
+		if err := s.roleRepo.Update(ctx, role); err != nil {
+			return err
 		}
+
+		if parentChanged {
+			if err := s.rebuildTree(ctx); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	// Invalidate Permission Config Version
@@ -127,21 +145,28 @@ func (s *roleService) Update(ctx context.Context, id int, req *dto.UpdateRoleReq
 
 // Delete removes a role by ID.
 func (s *roleService) Delete(ctx context.Context, id int) error {
-	exists, err := s.roleRepo.Exists(ctx, id)
+	err := global.EntClient.DoInTx(ctx, func(ctx context.Context) error {
+		exists, err := s.roleRepo.Exists(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if !exists {
+			return NewError(roleServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
+		}
+
+		if err := s.roleRepo.Delete(ctx, id); err != nil {
+			return err
+		}
+
+		if err := s.rebuildTree(ctx); err != nil {
+			return NewError(roleServiceName, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError, err)
+		}
+		return nil
+	})
+
 	if err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to check role exists", http.StatusInternalServerError)
-	}
-
-	if !exists {
-		return apperr.New(response.CodeNotFound, "role not found", http.StatusNotFound, nil)
-	}
-
-	if err := s.roleRepo.Delete(ctx, id); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to delete role", http.StatusInternalServerError)
-	}
-
-	if err := s.rebuildTree(ctx); err != nil {
-		return apperr.Wrap(err, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError)
+		return err
 	}
 
 	// Invalidate Permission Config Version

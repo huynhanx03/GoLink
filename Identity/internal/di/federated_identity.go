@@ -2,7 +2,7 @@ package di
 
 import (
 	db "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	"go-link/identity/internal/ports"
 )
 
@@ -12,7 +12,7 @@ type FederatedIdentityContainer struct {
 }
 
 // InitFederatedIdentityDependencies initializes federated identity dependencies.
-func InitFederatedIdentityDependencies(client *generate.Client) FederatedIdentityContainer {
+func InitFederatedIdentityDependencies(client *dbEnt.EntClient) FederatedIdentityContainer {
 	repository := db.NewFederatedIdentityRepository(client)
 
 	return FederatedIdentityContainer{

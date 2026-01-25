@@ -3,75 +3,106 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
+	"go-link/identity/internal/adapters/driven/db/ent/generate/federatedidentity"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
 )
 
+const fedIdentityRepoName = "FederatedIdentityRepository"
+
 type FederatedIdentityRepository struct {
-	repo   *ent.BaseRepository[generate.FederatedIdentity, *generate.FederatedIdentity, int]
-	client *generate.FederatedIdentityClient
+	client *dbEnt.EntClient
 }
 
-// NewFederatedIdentityRepository creates a new FederatedIdentityRepository instance.
-func NewFederatedIdentityRepository(client interface{}) ports.FederatedIdentityRepository {
-	entClient := client.(*generate.Client)
-	return &FederatedIdentityRepository{
-		repo:   ent.NewBaseRepository[generate.FederatedIdentity, *generate.FederatedIdentity, int](client),
-		client: entClient.FederatedIdentity,
-	}
+func NewFederatedIdentityRepository(client *dbEnt.EntClient) ports.FederatedIdentityRepository {
+	return &FederatedIdentityRepository{client: client}
 }
 
-// Find retrieves federated identities with pagination.
 func (r *FederatedIdentityRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.FederatedIdentity], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.FederatedIdentity.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
 
-	entities := make([]*entity.FederatedIdentity, len(*result.Records))
-	for i, record := range *result.Records {
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, fedIdentityRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, fedIdentityRepoName)
+	}
+
+	entities := make([]*entity.FederatedIdentity, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToFederatedIdentityEntity(record)
 	}
 
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.FederatedIdentity]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Get retrieves a federated identity by ID.
 func (r *FederatedIdentityRepository) Get(ctx context.Context, id int) (*entity.FederatedIdentity, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).FederatedIdentity.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, fedIdentityRepoName)
 	}
 	return mapper.ToFederatedIdentityEntity(record), nil
 }
 
-// Create creates a new federated identity.
 func (r *FederatedIdentityRepository) Create(ctx context.Context, e *entity.FederatedIdentity) error {
-	model := mapper.ToFederatedIdentityModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateFederatedIdentity(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, fedIdentityRepoName)
 	}
 
-	if created := mapper.ToFederatedIdentityEntity(model); created != nil {
+	if created := mapper.ToFederatedIdentityEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Delete removes a federated identity by ID.
 func (r *FederatedIdentityRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).FederatedIdentity.DeleteOneID(id).Exec(ctx), fedIdentityRepoName)
 }
 
-// Exists checks if a federated identity exists by ID.
 func (r *FederatedIdentityRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).FederatedIdentity.Query().Where(federatedidentity.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, fedIdentityRepoName)
 }

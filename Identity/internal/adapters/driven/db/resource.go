@@ -3,98 +3,130 @@ package db
 import (
 	"context"
 
-	"go-link/common/pkg/database/ent"
+	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	"entgo.io/ent/dialect/sql"
+
+	"go-link/identity/internal/adapters/driven/db/ent/builder"
+	"go-link/identity/internal/adapters/driven/db/ent/generate/resource"
 	"go-link/identity/internal/adapters/driven/db/mapper"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
 )
 
+const resourceRepoName = "ResourceRepository"
+
 type ResourceRepository struct {
-	repo   *ent.BaseRepository[generate.Resource, *generate.Resource, int]
-	client *generate.ResourceClient
+	client *dbEnt.EntClient
 }
 
-// NewResourceRepository creates a new ResourceRepository instance.
-func NewResourceRepository(client interface{}) ports.ResourceRepository {
-	entClient := client.(*generate.Client)
-	return &ResourceRepository{
-		repo:   ent.NewBaseRepository[generate.Resource, *generate.Resource, int](client),
-		client: entClient.Resource,
-	}
+func NewResourceRepository(client *dbEnt.EntClient) ports.ResourceRepository {
+	return &ResourceRepository{client: client}
 }
 
-// Find retrieves resources with pagination.
 func (r *ResourceRepository) Find(ctx context.Context, opts *d.QueryOptions) (*d.Paginated[*entity.Resource], error) {
-	result, err := r.repo.Find(ctx, opts)
-	if err != nil {
-		return nil, err
+	client := r.client.DB(ctx)
+
+	query := client.Resource.Query()
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplyFilters(opts.Filters, s)
+		})
 	}
 
-	entities := make([]*entity.Resource, len(*result.Records))
-	for i, record := range *result.Records {
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, resourceRepoName)
+	}
+
+	if opts != nil {
+		query.Where(func(s *sql.Selector) {
+			commonEnt.ApplySort(opts.Sort, s)
+			commonEnt.ApplyPagination(opts.Pagination, s)
+		})
+	}
+
+	records, err := query.All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, resourceRepoName)
+	}
+
+	entities := make([]*entity.Resource, len(records))
+	for i, record := range records {
 		entities[i] = mapper.ToResourceEntity(record)
 	}
 
+	paginationOpts := &d.PaginationOptions{}
+	if opts != nil && opts.Pagination != nil {
+		paginationOpts = opts.Pagination
+	} else {
+		paginationOpts.SetDefaults()
+	}
+
+	meta := d.CalculatePagination(
+		paginationOpts.Page,
+		paginationOpts.PageSize,
+		int64(total),
+	)
+
 	return &d.Paginated[*entity.Resource]{
 		Records:    &entities,
-		Pagination: result.Pagination,
+		Pagination: meta,
 	}, nil
 }
 
-// Get retrieves a resource by ID.
 func (r *ResourceRepository) Get(ctx context.Context, id int) (*entity.Resource, error) {
-	record, err := r.repo.Get(ctx, id)
+	record, err := r.client.DB(ctx).Resource.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, resourceRepoName)
 	}
 	return mapper.ToResourceEntity(record), nil
 }
 
-// Create creates a new resource.
 func (r *ResourceRepository) Create(ctx context.Context, e *entity.Resource) error {
-	model := mapper.ToResourceModel(e)
-	if err := r.repo.Create(ctx, model); err != nil {
-		return err
+	create := builder.BuildCreateResource(ctx, e)
+	record, err := create.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, resourceRepoName)
 	}
 
-	if created := mapper.ToResourceEntity(model); created != nil {
+	if created := mapper.ToResourceEntity(record); created != nil {
 		*e = *created
 	}
 	return nil
 }
 
-// Update updates an existing resource.
 func (r *ResourceRepository) Update(ctx context.Context, e *entity.Resource) error {
-	model := mapper.ToResourceModel(e)
-	if err := r.repo.Update(ctx, model); err != nil {
-		return err
+	update := builder.BuildUpdateResource(ctx, e)
+	record, err := update.Save(ctx)
+	if err != nil {
+		return commonEnt.MapEntError(err, resourceRepoName)
 	}
-	e.UpdatedAt = model.UpdatedAt
+	e.UpdatedAt = record.UpdatedAt
 	return nil
 }
 
-// Delete removes a resource by ID.
 func (r *ResourceRepository) Delete(ctx context.Context, id int) error {
-	return r.repo.Delete(ctx, id)
+	return commonEnt.MapEntError(r.client.DB(ctx).Resource.DeleteOneID(id).Exec(ctx), resourceRepoName)
 }
 
-// Exists checks if a resource exists by ID.
 func (r *ResourceRepository) Exists(ctx context.Context, id int) (bool, error) {
-	return r.repo.Exists(ctx, id)
+	exists, err := r.client.DB(ctx).Resource.Query().Where(resource.ID(id)).Exist(ctx)
+	return exists, commonEnt.MapEntError(err, resourceRepoName)
 }
 
-// FindByIDs retrieves resources by a list of IDs.
 func (r *ResourceRepository) FindByIDs(ctx context.Context, ids []int) ([]*entity.Resource, error) {
-	models, err := r.repo.FindByIDs(ctx, ids)
+	records, err := r.client.DB(ctx).Resource.Query().
+		Where(resource.IDIn(ids...)).
+		All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, commonEnt.MapEntError(err, resourceRepoName)
 	}
 
-	entities := make([]*entity.Resource, len(models))
-	for i, m := range models {
+	entities := make([]*entity.Resource, len(records))
+	for i, m := range records {
 		entities[i] = mapper.ToResourceEntity(m)
 	}
 	return entities, nil

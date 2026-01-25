@@ -17,7 +17,8 @@ type UserAttributeValue struct {
 // Mixin of the UserAttributeValue.
 func (UserAttributeValue) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

@@ -15,12 +15,12 @@ func Initialized() {
 
 func setupResourceMapping() {
 	if global.EntClient == nil {
-		global.Logger.Fatal("Database client is not initialized")
+		global.LoggerZap.Fatal("Database client is not initialized")
 	}
 
-	resources, err := global.EntClient.Resource.Query().All(context.Background())
+	resources, err := global.EntClient.DB(context.Background()).Resource.Query().All(context.Background())
 	if err != nil {
-		global.Logger.Fatal("Failed to load resources for mapping: %v", zap.Error(err))
+		global.LoggerZap.Fatal("Failed to load resources for mapping: %v", zap.Error(err))
 	}
 
 	mapping := make(map[string]int)
@@ -29,5 +29,5 @@ func setupResourceMapping() {
 	}
 
 	permissions.SetResourceMap(mapping)
-	global.Logger.Info("Loaded resources into permission mapping", zap.Int("count", len(mapping)))
+	global.LoggerZap.Info("Loaded resources into permission mapping", zap.Int("count", len(mapping)))
 }

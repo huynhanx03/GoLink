@@ -16,7 +16,8 @@ type Tenant struct {
 // Mixin of the Tenant.
 func (Tenant) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

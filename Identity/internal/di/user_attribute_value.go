@@ -2,7 +2,7 @@ package di
 
 import (
 	db "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	"go-link/identity/internal/ports"
 )
 
@@ -12,7 +12,7 @@ type UserAttributeValueContainer struct {
 }
 
 // InitUserAttributeValueDependencies initializes user attribute value dependencies.
-func InitUserAttributeValueDependencies(client *generate.Client) UserAttributeValueContainer {
+func InitUserAttributeValueDependencies(client *dbEnt.EntClient) UserAttributeValueContainer {
 	repository := db.NewUserAttributeValueRepository(client)
 
 	return UserAttributeValueContainer{

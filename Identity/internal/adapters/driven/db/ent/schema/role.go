@@ -16,7 +16,8 @@ type Role struct {
 // Mixin of the Role.
 func (Role) Mixin() []ent.Mixin {
 	return []ent.Mixin{
-		e.BaseMixin{},
+		e.TimeMixin{},
+		e.SoftDeleteMixin{},
 	}
 }
 

@@ -2,7 +2,7 @@ package di
 
 import (
 	db "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	"go-link/identity/internal/ports"
 )
 
@@ -12,7 +12,7 @@ type TenantMemberContainer struct {
 }
 
 // InitTenantMemberDependencies initializes tenant member dependencies.
-func InitTenantMemberDependencies(client *generate.Client) TenantMemberContainer {
+func InitTenantMemberDependencies(client *dbEnt.EntClient) TenantMemberContainer {
 	repository := db.NewTenantMemberRepository(client)
 
 	return TenantMemberContainer{

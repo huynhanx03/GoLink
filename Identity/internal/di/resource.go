@@ -2,7 +2,7 @@ package di
 
 import (
 	db "go-link/identity/internal/adapters/driven/db"
-	"go-link/identity/internal/adapters/driven/db/ent/generate"
+	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
 	driverHttp "go-link/identity/internal/adapters/driver/http"
 	"go-link/identity/internal/core/service"
 	"go-link/identity/internal/ports"
@@ -17,7 +17,7 @@ type ResourceContainer struct {
 
 // InitResourceDependencies initializes resource dependencies.
 func InitResourceDependencies(
-	client *generate.Client,
+	client *dbEnt.EntClient,
 	cacheService ports.CacheService,
 ) ResourceContainer {
 	repository := db.NewResourceRepository(client)
