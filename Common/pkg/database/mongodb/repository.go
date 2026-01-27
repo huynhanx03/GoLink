@@ -126,8 +126,8 @@ func (r *BaseRepository[T]) Find(ctx context.Context, opts *dto.QueryOptions) (*
 	}, nil
 }
 
-// CreateBatch inserts multiple documents
-func (r *BaseRepository[T]) CreateBatch(ctx context.Context, models []*T) error {
+// CreateBulk inserts multiple documents
+func (r *BaseRepository[T]) CreateBulk(ctx context.Context, models []*T) error {
 	if len(models) == 0 {
 		return nil
 	}
@@ -152,8 +152,8 @@ func (r *BaseRepository[T]) CreateBatch(ctx context.Context, models []*T) error 
 	return nil
 }
 
-// DeleteBatch removes multiple documents by IDs
-func (r *BaseRepository[T]) DeleteBatch(ctx context.Context, ids []primitive.ObjectID) error {
+// DeleteBulk removes multiple documents by IDs
+func (r *BaseRepository[T]) DeleteBulk(ctx context.Context, ids []primitive.ObjectID) error {
 	if len(ids) == 0 {
 		return nil
 	}

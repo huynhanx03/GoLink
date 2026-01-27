@@ -20,7 +20,7 @@ func Run() error {
 	ctx := context.Background()
 
 	if err := di.GlobalContainer.LinkContainer.Consumer.Start(ctx); err != nil {
-		global.Logger.Error("Link CDC Consumer failed", zap.Error(err))
+		global.LoggerZap.Error("Link CDC Consumer failed", zap.Error(err))
 	}
 
 	return http.Run()

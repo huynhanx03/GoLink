@@ -1,0 +1,29 @@
+meta {
+  name: Update Profile
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{base_url}}/identity/users/profile
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "first_name": "nhan1",
+    "last_name": "huynh2",
+    "gender": 0,
+    "birthday": "2006-01-02"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

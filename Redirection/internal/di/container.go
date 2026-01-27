@@ -1,7 +1,7 @@
 package di
 
 type Container struct {
-	LinkContainer LinkContainer
+	LinkContainer *LinkContainer
 }
 
 var GlobalContainer *Container

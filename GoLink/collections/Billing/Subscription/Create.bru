@@ -1,0 +1,26 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/billing/subscriptions
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "tenant_id": 1,
+    "plan_id": 1,
+    "status": "ACTIVE",
+    "current_period_start": "2024-01-01T00:00:00Z",
+    "current_period_end": "2024-02-01T00:00:00Z",
+    "cancel_at_period_end": false
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

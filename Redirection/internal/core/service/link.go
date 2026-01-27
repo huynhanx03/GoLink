@@ -32,7 +32,7 @@ func (s *linkService) GetOriginalURL(ctx context.Context, shortCode string) (str
 	entity, err := s.linkCache.Get(ctx, shortCode)
 
 	if entity != nil {
-		global.Logger.Info("Link found in cache", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
+		global.LoggerZap.Info("Link found in cache", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
 		return entity.OriginalURL, nil
 	}
 
@@ -43,17 +43,17 @@ func (s *linkService) GetOriginalURL(ctx context.Context, shortCode string) (str
 
 	err = s.linkCache.Set(ctx, entity)
 	if err != nil {
-		global.Logger.Error("Failed to set link in cache", zap.Error(err))
+		global.LoggerZap.Error("Failed to set link in cache", zap.Error(err))
 	}
 
-	global.Logger.Info("Link found in database", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
+	global.LoggerZap.Info("Link found in database", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
 	return entity.OriginalURL, nil
 }
 
 func (s *linkService) HandleLinkBatchChange(ctx context.Context, batch []*cdc.DebeziumPayload[entity.Link]) error {
 	var (
 		linksToCreate []*entity.Link
-		idsToDelete []string
+		idsToDelete   []string
 	)
 
 	for _, payload := range batch {
@@ -70,16 +70,16 @@ func (s *linkService) HandleLinkBatchChange(ctx context.Context, batch []*cdc.De
 	}
 
 	if len(linksToCreate) > 0 {
-		if err := s.linkRepo.CreateBatch(ctx, linksToCreate); err != nil {
+		if err := s.linkRepo.CreateBulk(ctx, linksToCreate); err != nil {
 			return apperr.Wrap(err, response.CodeInternalServer, "failed to batch save link", http.StatusInternalServerError)
 		}
 	}
 
 	if len(idsToDelete) > 0 {
-		if err := s.linkRepo.DeleteBatch(ctx, idsToDelete); err != nil {
+		if err := s.linkRepo.DeleteBulk(ctx, idsToDelete); err != nil {
 			return apperr.Wrap(err, response.CodeInternalServer, "failed to batch remove link", http.StatusInternalServerError)
 		}
-		if err := s.linkCache.DeleteBatch(ctx, idsToDelete); err != nil {
+		if err := s.linkCache.DeleteBulk(ctx, idsToDelete); err != nil {
 			return apperr.Wrap(err, response.CodeInternalServer, "failed to batch remove link", http.StatusInternalServerError)
 		}
 	}

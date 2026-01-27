@@ -2,7 +2,11 @@ go 1.25.0
 
 use (
 	./Analytics
+	./Billing
 	./Common
 	./Generation
+	./Identity
+	./Orchestrator
+	./Payment
 	./Redirection
 )

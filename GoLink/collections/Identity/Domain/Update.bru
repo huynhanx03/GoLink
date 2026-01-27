@@ -1,0 +1,21 @@
+meta {
+  name: Update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/domains/1
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "is_verified": true
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

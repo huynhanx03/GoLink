@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   scylla-node1:
     image: scylladb/scylla:5.2
@@ -122,6 +120,24 @@ services:
       - STATUS_STORAGE_TOPIC=my_connect_statuses
     depends_on:
       - kafka
+    networks:
+      - golink-net
+  
+  postgres:
+    image: postgres:16-alpine
+    container_name: golink-postgres
+    restart: always
+    ports:
+      - "2011:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - golink-net
 

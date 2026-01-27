@@ -1,0 +1,25 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/billing/invoices
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "subscription_id": 1,
+    "tenant_id": 1,
+    "amount": 29.99,
+    "currency": "USD",
+    "status": "PENDING"
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

@@ -1,1 +1,3 @@
 .vscode
+Identity/.env
+Identity/certs/private_key.pem

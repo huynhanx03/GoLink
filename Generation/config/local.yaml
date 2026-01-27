@@ -3,7 +3,6 @@ server:
   mode: "dev"
   host: "localhost"
 
-
 redis:
   addrs:
     - "localhost:2005"
@@ -36,3 +35,11 @@ snowflake_node:
     node: 2
     step: 10
     total_bits: 42
+
+services:
+  identity_service:
+    host: "localhost"
+    port: 2202
+  billing_service:
+    host: "localhost"
+    port: 2203

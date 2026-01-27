@@ -1,0 +1,28 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/identity/users
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "username": "usertest01",
+    "password": "123456789",
+    "first_name": "nhan",
+    "last_name": "huynh",
+    "gender": 0,
+    "birthday": "2006-01-02",
+    "is_admin": true
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

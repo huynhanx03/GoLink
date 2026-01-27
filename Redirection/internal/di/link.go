@@ -21,7 +21,7 @@ type LinkContainer struct {
 	Handler    driverHttp.LinkHandler
 }
 
-func InitLinkDependencies() LinkContainer {
+func InitLinkDependencies() *LinkContainer {
 	// Cache
 	cache := cache.NewLink(global.Redis)
 
@@ -54,10 +54,10 @@ func InitLinkDependencies() LinkContainer {
 
 	consumer, err := linkconsumer.NewCDCConsumer(kafkaCfg, service)
 	if err != nil {
-		global.Logger.Fatal("failed to create link cdc consumer", zap.Error(err))
+		global.LoggerZap.Fatal("failed to create link cdc consumer", zap.Error(err))
 	}
 
-	return LinkContainer{
+	return &LinkContainer{
 		Repository: repository,
 		Service:    service,
 		Consumer:   consumer,

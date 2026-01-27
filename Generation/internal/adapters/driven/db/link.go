@@ -26,6 +26,25 @@ func NewLinkRepository() ports.LinkRepository {
 }
 
 // Create a link with TTL
-func (l *LinkRepository) Create(ctx context.Context, link *entity.Link) error {
-	return l.repo.CreateWithTTL(ctx, models.FromEntity(link), defaultTTL)
+func (l *LinkRepository) Create(ctx context.Context, link *entity.Link, ttl int) error {
+	if ttl == 0 {
+		ttl = defaultTTL
+	}
+	return l.repo.CreateWithTTL(ctx, models.FromEntity(link), ttl)
+}
+
+func (l *LinkRepository) Get(ctx context.Context, id string) (*entity.Link, error) {
+	link, err := l.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return link.ToEntity(), nil
+}
+
+func (l *LinkRepository) Delete(ctx context.Context, id string) error {
+	_, err := l.repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	return l.repo.Delete(ctx, id)
 }

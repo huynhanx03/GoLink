@@ -1,0 +1,24 @@
+meta {
+  name: Find
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/identity/domains/find
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "pagination": {
+      "page": 1,
+      "page_size": 10
+    }
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

@@ -133,8 +133,8 @@ func (r *BaseRepository[T]) Exists(ctx context.Context, id any) (bool, error) {
 	return count > 0, nil
 }
 
-// CreateBatch inserts multiple models
-func (r *BaseRepository[T]) CreateBatch(ctx context.Context, models []*T) error {
+// CreateBulk inserts multiple models
+func (r *BaseRepository[T]) CreateBulk(ctx context.Context, models []*T) error {
 	if len(models) == 0 {
 		return nil
 	}
@@ -159,8 +159,8 @@ func (r *BaseRepository[T]) CreateBatch(ctx context.Context, models []*T) error 
 	return r.session.ExecuteBatch(batch)
 }
 
-// DeleteBatch removes multiple models by IDs
-func (r *BaseRepository[T]) DeleteBatch(ctx context.Context, ids []any) error {
+// DeleteBulk removes multiple models by IDs
+func (r *BaseRepository[T]) DeleteBulk(ctx context.Context, ids []any) error {
 	if len(ids) == 0 {
 		return nil
 	}

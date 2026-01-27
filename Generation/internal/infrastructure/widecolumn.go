@@ -12,9 +12,9 @@ func SetupWideColumn() {
 	client := widecolumn.NewClient(&config)
 
 	if err := client.Connect(); err != nil {
-		global.Logger.Sugar().Fatalf("Failed to connect to WideColumn: %v", err)
+		global.LoggerZap.Sugar().Fatalf("Failed to connect to WideColumn: %v", err)
 	}
 
 	global.WideColumnClient = client
-	global.Logger.Sugar().Info("Connected to WideColumn successfully")
+	global.LoggerZap.Sugar().Info("Connected to WideColumn successfully")
 }
