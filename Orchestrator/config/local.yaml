@@ -3,4 +3,10 @@ server:
   mode: "dev"
   host: "localhost"
 
-
+services:
+  identity_service:
+    host: "localhost"
+    port: 2202
+  billing_service:
+    host: "localhost"
+    port: 2203
