@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
@@ -125,7 +126,7 @@ func (s *attributeDefinitionService) Delete(ctx context.Context, id int) error {
 	}
 
 	if !exists {
-		return NewError(attrDefServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
+		return apperr.NewError(attrDefServiceName, response.CodeNotFound, apperr.MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.attrDefRepo.Delete(ctx, id); err != nil {

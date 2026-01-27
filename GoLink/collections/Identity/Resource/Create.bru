@@ -7,7 +7,7 @@ meta {
 post {
   url: {{base_url}}/identity/resources
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
@@ -15,4 +15,8 @@ body:json {
     "key": "users",
     "description": "User management resource"
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

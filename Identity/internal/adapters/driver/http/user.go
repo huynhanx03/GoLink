@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"go-link/common/pkg/common/apperr"
-	"go-link/common/pkg/common/http/middlewares"
 	"go-link/common/pkg/common/http/response"
+	"go-link/common/pkg/constraints"
+
 	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/ports"
 )
@@ -47,7 +48,7 @@ func (h *userHandler) Delete(ctx context.Context, req *dto.DeleteUserRequest) (*
 }
 
 func (h *userHandler) UpdateProfile(ctx context.Context, req *dto.UpdateProfileRequest) (*dto.ProfileResponse, error) {
-	userIDVal := ctx.Value(middlewares.ContextKeyUserID)
+	userIDVal := ctx.Value(constraints.ContextKeyUserID)
 	if userIDVal == nil {
 		return nil, apperr.New(response.CodeUnauthorized, "user id not found in context", http.StatusUnauthorized, nil)
 	}
@@ -60,7 +61,7 @@ func (h *userHandler) UpdateProfile(ctx context.Context, req *dto.UpdateProfileR
 }
 
 func (h *userHandler) GetProfile(ctx context.Context, req *dto.GetProfileRequest) (*dto.ProfileResponse, error) {
-	userIDVal := ctx.Value(middlewares.ContextKeyUserID)
+	userIDVal := ctx.Value(constraints.ContextKeyUserID)
 	if userIDVal == nil {
 		return nil, apperr.New(response.CodeUnauthorized, "user id not found in context", http.StatusUnauthorized, nil)
 	}

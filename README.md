@@ -106,16 +106,16 @@ make run-redirection
 ```
 
 ### 5. Usage
-API Gateway port **8080**.
+API Gateway port **2222**.
 
 **Create Short Link:**
 ```bash
-curl -X POST http://localhost:8080/generation/links \
+curl -X POST http://localhost:2222/generation/links \
   -H "Content-Type: application/json" \
   -d '{"original_url": "https://google.com"}'
 ```
 
 **Access Link:**
 ```bash
-curl -v http://localhost:8080/AbCdEfG
+curl -v http://localhost:2222/AbCdEfG
 ```

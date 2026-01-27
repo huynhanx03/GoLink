@@ -126,3 +126,18 @@ func (r *TenantMemberRepository) GetByUserAndTenant(ctx context.Context, userID,
 	}
 	return mapper.ToTenantMemberEntity(record), nil
 }
+
+func (r *TenantMemberRepository) GetByUser(ctx context.Context, userID int) ([]*entity.TenantMember, error) {
+	records, err := r.client.DB(ctx).TenantMember.Query().
+		Where(tenantmember.UserID(userID)).
+		All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, tenantMemberRepoName)
+	}
+
+	entities := make([]*entity.TenantMember, len(records))
+	for i, record := range records {
+		entities[i] = mapper.ToTenantMemberEntity(record)
+	}
+	return entities, nil
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 
@@ -87,7 +88,7 @@ func (s *tenantService) Delete(ctx context.Context, id int) error {
 	}
 
 	if !exists {
-		return NewError(tenantServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
+		return apperr.NewError(tenantServiceName, response.CodeNotFound, apperr.MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.tenantRepo.Delete(ctx, id); err != nil {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	"go-link/identity/global"
@@ -59,7 +60,7 @@ func (s *userService) Delete(ctx context.Context, id int) error {
 	}
 
 	if !exists {
-		return NewError(userServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
+		return apperr.NewError(userServiceName, response.CodeNotFound, apperr.MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.userRepo.Delete(ctx, id); err != nil {
@@ -178,5 +179,39 @@ func (s *userService) GetProfile(ctx context.Context, userID int) (*dto.ProfileR
 		LastName:  lastNameVal,
 		Gender:    genderInt,
 		Birthday:  birthdayVal,
+	}, nil
+}
+
+// GetRole gets the role for a user in a specific tenant
+func (s *userService) GetRole(ctx context.Context, userID int, tenantID int) (*dto.RoleResponse, error) {
+	user, err := s.userRepo.Get(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Super Admin always has max level
+	if user.IsAdmin {
+		return &dto.RoleResponse{
+			ID:    -1,
+			Name:  "Super Admin",
+			Level: 1000,
+		}, nil
+	}
+
+	// Get membership for specific tenant
+	member, err := s.tenantMemberRepo.GetByUserAndTenant(ctx, userID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := s.roleRepo.Get(ctx, member.RoleID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.RoleResponse{
+		ID:    role.ID,
+		Name:  role.Name,
+		Level: role.Level,
 	}, nil
 }

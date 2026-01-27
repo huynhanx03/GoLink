@@ -32,7 +32,7 @@ func (s *linkService) GetOriginalURL(ctx context.Context, shortCode string) (str
 	entity, err := s.linkCache.Get(ctx, shortCode)
 
 	if entity != nil {
-		global.Logger.Info("Link found in cache", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
+		global.LoggerZap.Info("Link found in cache", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
 		return entity.OriginalURL, nil
 	}
 
@@ -43,10 +43,10 @@ func (s *linkService) GetOriginalURL(ctx context.Context, shortCode string) (str
 
 	err = s.linkCache.Set(ctx, entity)
 	if err != nil {
-		global.Logger.Error("Failed to set link in cache", zap.Error(err))
+		global.LoggerZap.Error("Failed to set link in cache", zap.Error(err))
 	}
 
-	global.Logger.Info("Link found in database", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
+	global.LoggerZap.Info("Link found in database", zap.String("shortCode", shortCode), zap.String("originalURL", entity.OriginalURL))
 	return entity.OriginalURL, nil
 }
 

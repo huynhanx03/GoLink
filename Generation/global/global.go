@@ -10,7 +10,7 @@ import (
 
 var (
 	Config           settings.Config
-	Logger           *logger.LoggerZap
+	LoggerZap        *logger.LoggerZap
 	WideColumnClient widecolumn.WideColumnClient
 	Redis            cache.CacheEngine
 	Time10ms         t.Timer

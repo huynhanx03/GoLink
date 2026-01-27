@@ -1,7 +1,9 @@
 package di
 
 import (
+	"go-link/common/pkg/common/cache/tinylfu"
 	"go-link/common/pkg/unique"
+
 	"go-link/generation/global"
 	"go-link/generation/internal/adapters/driven/cache"
 	db "go-link/generation/internal/adapters/driven/db"
@@ -18,7 +20,7 @@ type LinkContainer struct {
 	CodePool   *pool.ShortCode
 }
 
-func InitLinkDependencies() LinkContainer {
+func InitLinkDependencies(clientContainer *ClientContainer) *LinkContainer {
 	// Node
 	node, _ := unique.NewSnowflakeNode(global.Config.SnowflakeNode, global.Time1s)
 
@@ -31,13 +33,25 @@ func InitLinkDependencies() LinkContainer {
 	// Repository
 	repository := db.NewLinkRepository()
 
+	// Config Cache
+	localCache := tinylfu.New[string, int](tinylfu.Config{
+		MaxCost: 1000,
+	})
+
 	// Service
-	service := service.NewLinkService(repository, pool, cache)
+	service := service.NewLinkService(
+		repository,
+		pool,
+		cache,
+		localCache,
+		clientContainer.IdentityClient,
+		clientContainer.BillingClient,
+	)
 
 	// Handler
 	handler := driverHttp.NewLinkHandler(service)
 
-	return LinkContainer{
+	return &LinkContainer{
 		Repository: repository,
 		Service:    service,
 		Handler:    handler,

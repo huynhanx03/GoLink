@@ -7,6 +7,7 @@ import (
 
 	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/response"
+	"go-link/common/pkg/constraints"
 	"go-link/common/pkg/permissions"
 
 	"github.com/RoaringBitmap/roaring"
@@ -15,15 +16,17 @@ import (
 // RequirePermission checks if the user has the required permission scope for a resource.
 func RequirePermission(resourceKey string, requiredScope int) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+
 		// Admin Bypass
-		if isAdmin, exists := c.Get(ContextKeyIsAdmin); exists && isAdmin.(bool) {
+		if isAdmin, ok := ctx.Value(constraints.ContextKeyIsAdmin).(bool); ok && isAdmin {
 			c.Next()
 			return
 		}
 
 		// Permission Check
-		perms, exists := c.Get(ContextKeyPermissions)
-		if !exists {
+		perms := ctx.Value(constraints.ContextKeyPermissions)
+		if perms == nil {
 			response.ErrorResponse(c, response.CodeForbidden, apperr.New(response.CodeForbidden, "permission denied", http.StatusForbidden, nil))
 			c.Abort()
 			return
@@ -56,7 +59,8 @@ func RequirePermission(resourceKey string, requiredScope int) gin.HandlerFunc {
 // RequireAdmin checks if the user is an admin.
 func RequireAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if isAdmin, exists := c.Get(ContextKeyIsAdmin); exists && isAdmin.(bool) {
+		ctx := c.Request.Context()
+		if isAdmin, ok := ctx.Value(constraints.ContextKeyIsAdmin).(bool); ok && isAdmin {
 			c.Next()
 			return
 		}

@@ -6,8 +6,8 @@ import (
 
 	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/handler"
-	"go-link/common/pkg/common/http/middlewares"
 	"go-link/common/pkg/common/http/response"
+	"go-link/common/pkg/constraints"
 
 	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/ports"
@@ -51,7 +51,7 @@ func (h *authenticationHandler) AcquireToken(ctx context.Context, req *dto.Acqui
 
 // ChangePassword handles password change.
 func (h *authenticationHandler) ChangePassword(ctx context.Context, req *dto.ChangePasswordRequest) (*dto.ChangePasswordResponse, error) {
-	userIDVal := ctx.Value(middlewares.ContextKeyUserID)
+	userIDVal := ctx.Value(constraints.ContextKeyUserID)
 	if userIDVal == nil {
 		return nil, apperr.New(response.CodeUnauthorized, "user id not found in context", http.StatusUnauthorized, nil)
 	}
@@ -65,7 +65,7 @@ func (h *authenticationHandler) ChangePassword(ctx context.Context, req *dto.Cha
 
 // RefreshToken handles token refresh.
 func (h *authenticationHandler) RefreshToken(ctx context.Context, req *dto.RefreshTokenRequest) (*dto.RefreshTokenResponse, error) {
-	userIDVal := ctx.Value(middlewares.ContextKeyUserID)
+	userIDVal := ctx.Value(constraints.ContextKeyUserID)
 	if userIDVal == nil {
 		return nil, apperr.New(response.CodeUnauthorized, "user id not found in context", http.StatusUnauthorized, nil)
 	}

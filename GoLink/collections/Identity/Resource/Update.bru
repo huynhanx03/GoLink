@@ -7,11 +7,15 @@ meta {
 put {
   url: {{base_url}}/identity/resources/1
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
   {
     "description": "Updated description"
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

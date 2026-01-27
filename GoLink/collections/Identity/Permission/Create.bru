@@ -7,7 +7,7 @@ meta {
 post {
   url: {{base_url}}/identity/permissions
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
@@ -17,4 +17,8 @@ body:json {
     "description": "Full CRUD access to users",
     "scopes": 15
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

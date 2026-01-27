@@ -1,7 +1,8 @@
 package di
 
 type Container struct {
-	LinkContainer LinkContainer
+	LinkContainer   *LinkContainer
+	ClientContainer *ClientContainer
 }
 
 var GlobalContainer *Container

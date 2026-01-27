@@ -105,12 +105,12 @@ func (p *ShortCode) Get() (string, bool) {
 // This ensures the caller always gets a valid code.
 func (p *ShortCode) GetOrGenerate() string {
 	if code, ok := p.pool.Dequeue(); ok {
-		global.Logger.Info("Short code retrieved from pool", zap.String("shortCode", code), zap.Int64("poolSize", p.pool.Size()))
+		global.LoggerZap.Info("Short code retrieved from pool", zap.String("shortCode", code), zap.Int64("poolSize", p.pool.Size()))
 		return code
 	}
 
 	// Fallback: Generate on-demand (slower path)
-	global.Logger.Warn("Short code pool is empty, generating on-demand", zap.Int64("poolSize", p.pool.Size()))
+	global.LoggerZap.Warn("Short code pool is empty, generating on-demand", zap.Int64("poolSize", p.pool.Size()))
 	return encoding.Base62Encode(p.node.Generate())
 }
 

@@ -1,5 +1,7 @@
 package settings
 
+import "crypto/rsa"
+
 type Config struct {
 	Server        Server        `mapstructure:"server"`
 	MongoDB       MongoDB       `mapstructure:"mongodb"`
@@ -11,10 +13,25 @@ type Config struct {
 	Database      Database      `mapstructure:"database"`
 	SnowflakeNode SnowflakeNode `mapstructure:"snowflake_node"`
 	JWT           JWT           `mapstructure:"jwt"`
+	Services      Services      `mapstructure:"services"`
+}
+
+type Services struct {
+	IdentityService GRPCService `mapstructure:"identity_service"`
+	BillingService  GRPCService `mapstructure:"billing_service"`
+}
+
+type GRPCService struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 type JWT struct {
-	Secret string `mapstructure:"secret"`
+	Secret         string          `mapstructure:"secret"`
+	PrivateKeyPath string          `mapstructure:"private_key_path"`
+	PublicKeyPath  string          `mapstructure:"public_key_path"`
+	PrivateKey     *rsa.PrivateKey `mapstructure:"-"`
+	PublicKey      *rsa.PublicKey  `mapstructure:"-"`
 }
 
 // WideColumn is the configuration for Wide Column databases (Cassandra/ScyllaDB)
@@ -43,9 +60,10 @@ type Database struct {
 
 // Server is the configuration for the server
 type Server struct {
-	Mode string `mapstructure:"mode"`
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+	Mode     string `mapstructure:"mode"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	GRPCPort int    `mapstructure:"grpc_port"`
 }
 
 // MongoDB is the configuration for MongoDB

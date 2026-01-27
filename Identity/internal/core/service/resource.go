@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
@@ -111,7 +112,7 @@ func (s *resourceService) Delete(ctx context.Context, id int) error {
 	}
 
 	if !exists {
-		return NewError(resourceServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
+		return apperr.NewError(resourceServiceName, response.CodeNotFound, apperr.MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.resourceRepo.Delete(ctx, id); err != nil {

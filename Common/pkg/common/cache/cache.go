@@ -22,6 +22,8 @@ type CacheEngine interface {
 	InvalidatePrefix(ctx context.Context, prefix string) error
 	BatchSet(ctx context.Context, values map[string]any, ttl time.Duration) error
 	DeleteBulk(ctx context.Context, keys []string) error
+	Incr(ctx context.Context, key string) (int64, error)
+	Decr(ctx context.Context, key string) (int64, error)
 	GeoAdd(ctx context.Context, key string, locations ...*GeoLocation) error
 	GeoRemove(ctx context.Context, key string, members ...string) error
 	GeoRadius(ctx context.Context, key string, longitude, latitude, radius float64, unit string) ([]*GeoLocation, error)

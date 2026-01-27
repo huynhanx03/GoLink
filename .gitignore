@@ -1,2 +1,3 @@
 .vscode
-Identity/internal/adapters/driven/db/ent/generate
+Identity/.env
+Identity/certs/private_key.pem

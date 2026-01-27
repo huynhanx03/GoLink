@@ -12,21 +12,18 @@ post {
 
 body:json {
   {
-    "username": "usertest",
-    "password": "123"
+    "username": "usertest01",
+    "password": "123456789"
   }
 }
 
 script:post-response {
-  const body = JSON.parse(res.body);
-  
-  if (body?.data?.access_token) {
-    bru.setEnvVar("access_token", body.data.access_token);
+  function onResponse(res) {
+    let data = res.getBody({ raw: true });
+    let access_token = bru.setEnvVar("access_token", data.data.access_token);
+    let refresh_token = bru.setEnvVar("refresh_token", data.data.refresh_token);
   }
-  
-  if (body?.data?.refresh_token) {
-    bru.setEnvVar("refresh_token", body.data.refresh_token);
-  }
+  onResponse(res);
   
 }
 

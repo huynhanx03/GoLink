@@ -1,0 +1,22 @@
+meta {
+  name: Update
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{base_url}}/billing/subscriptions/1
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "status": "CANCELED",
+    "cancel_at_period_end": true
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

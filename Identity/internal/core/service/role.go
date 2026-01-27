@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"sort"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
 
 	"go-link/identity/global"
+	"go-link/identity/internal/constant"
 	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/core/mapper"
@@ -73,7 +75,7 @@ func (s *roleService) Create(ctx context.Context, req *dto.CreateRoleRequest) (*
 		}
 
 		if err := s.rebuildTree(ctx); err != nil {
-			return NewError(roleServiceName, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError, err)
+			return apperr.NewError(roleServiceName, response.CodeDatabaseError, constant.MsgRebuildTreeFailed, http.StatusInternalServerError, err)
 		}
 		return nil
 	})
@@ -111,7 +113,7 @@ func (s *roleService) Update(ctx context.Context, id int, req *dto.UpdateRoleReq
 		if req.ParentID != nil {
 			if role.ParentID != *req.ParentID {
 				if *req.ParentID == id {
-					return NewError(roleServiceName, response.CodeInvalidID, "cannot set parent to self", http.StatusBadRequest, nil)
+					return apperr.NewError(roleServiceName, response.CodeInvalidID, constant.MsgInvalidParentID, http.StatusBadRequest, nil)
 				}
 				role.ParentID = *req.ParentID
 				parentChanged = true
@@ -152,7 +154,7 @@ func (s *roleService) Delete(ctx context.Context, id int) error {
 		}
 
 		if !exists {
-			return NewError(roleServiceName, response.CodeNotFound, MsgNotFound, http.StatusNotFound, nil)
+			return apperr.NewError(roleServiceName, response.CodeNotFound, apperr.MsgNotFound, http.StatusNotFound, nil)
 		}
 
 		if err := s.roleRepo.Delete(ctx, id); err != nil {
@@ -160,7 +162,7 @@ func (s *roleService) Delete(ctx context.Context, id int) error {
 		}
 
 		if err := s.rebuildTree(ctx); err != nil {
-			return NewError(roleServiceName, response.CodeDatabaseError, "failed to rebuild role tree", http.StatusInternalServerError, err)
+			return apperr.NewError(roleServiceName, response.CodeDatabaseError, constant.MsgRebuildTreeFailed, http.StatusInternalServerError, err)
 		}
 		return nil
 	})

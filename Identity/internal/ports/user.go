@@ -22,4 +22,5 @@ type UserService interface {
 	Delete(ctx context.Context, id int) error
 	UpdateProfile(ctx context.Context, userID int, req *dto.UpdateProfileRequest) (*dto.ProfileResponse, error)
 	GetProfile(ctx context.Context, userID int) (*dto.ProfileResponse, error)
+	GetRole(ctx context.Context, userID int, tenantID int) (*dto.RoleResponse, error)
 }

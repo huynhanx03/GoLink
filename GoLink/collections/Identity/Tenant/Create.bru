@@ -7,11 +7,15 @@ meta {
 post {
   url: {{base_url}}/identity/tenants
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
   {
     "name": "Acme Corp"
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

@@ -7,7 +7,7 @@ meta {
 post {
   url: {{base_url}}/identity/roles/find
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
@@ -17,4 +17,8 @@ body:json {
       "page_size": 10
     }
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

@@ -61,7 +61,7 @@ func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
 
 	// Protected Routes
 	protected := r.Group("/")
-	protected.Use(middlewares.Authentication(global.Config.JWT.Secret))
+	protected.Use(middlewares.Authentication(global.Config.JWT.PublicKey))
 	{
 		// Auth
 		auth := protected.Group("/auth")

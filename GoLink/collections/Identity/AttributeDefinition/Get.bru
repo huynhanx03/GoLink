@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{base_url}}/identity/attribute-definitions/1
+  url: {{base_url}}/identity/attribute-definitions/11
   body: none
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

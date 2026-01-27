@@ -7,11 +7,15 @@ meta {
 put {
   url: {{base_url}}/domains/1
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
   {
     "is_verified": true
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

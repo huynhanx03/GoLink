@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	p "go-link/common/pkg/permissions"
@@ -151,23 +152,23 @@ func (s *authenticationService) Login(ctx context.Context, req *dto.LoginRequest
 	// Verify password
 	hash, ok := cred.CredentialData[credentialKeyHash].(string)
 	if !ok {
-		return nil, NewError(authServiceName, response.CodeInternalError, MsgInvalidCredData, http.StatusInternalServerError, nil)
+		return nil, apperr.NewError(authServiceName, response.CodeInternalError, constant.MsgInvalidCredData, http.StatusInternalServerError, nil)
 	}
 
 	if err := security.ComparePassword(hash, req.Password); err != nil {
-		return nil, MapError(authServiceName, err, response.CodeUnauthorized, MsgInvalidAuth, http.StatusUnauthorized)
+		return nil, apperr.MapError(authServiceName, err, response.CodeUnauthorized, constant.MsgInvalidAuth, http.StatusUnauthorized)
 	}
 
 	refreshToken, err := s.generateRefreshToken(user)
 	if err != nil {
-		return nil, MapError(authServiceName, err, response.CodeInternalError, MsgGenFailed, http.StatusInternalServerError)
+		return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 	}
 
 	var accessToken string
 	if user.IsAdmin {
 		accessToken, err = s.generateAccessToken(ctx, user, 0, 0, nil)
 		if err != nil {
-			return nil, MapError(authServiceName, err, response.CodeInternalError, MsgGenFailed, http.StatusInternalServerError)
+			return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 		}
 	}
 
@@ -223,17 +224,17 @@ func (s *authenticationService) ChangePassword(ctx context.Context, userID int, 
 	// Verify current password
 	hash, ok := cred.CredentialData[credentialKeyHash].(string)
 	if !ok {
-		return nil, NewError(authServiceName, response.CodeInternalError, MsgInvalidCredData, http.StatusInternalServerError, nil)
+		return nil, apperr.NewError(authServiceName, response.CodeInternalError, constant.MsgInvalidCredData, http.StatusInternalServerError, nil)
 	}
 
 	if err := security.ComparePassword(hash, req.CurrentPassword); err != nil {
-		return nil, MapError(authServiceName, err, response.CodeUnauthorized, MsgPassIncorrect, http.StatusUnauthorized)
+		return nil, apperr.MapError(authServiceName, err, response.CodeUnauthorized, constant.MsgPassIncorrect, http.StatusUnauthorized)
 	}
 
 	// Hash new password
 	newHash, err := security.HashPassword(req.NewPassword)
 	if err != nil {
-		return nil, MapError(authServiceName, err, response.CodeInternalError, MsgGenFailed, http.StatusInternalServerError)
+		return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 	}
 
 	err = global.EntClient.DoInTx(ctx, func(ctx context.Context) error {
@@ -259,7 +260,7 @@ func (s *authenticationService) CreateUser(ctx context.Context, req *dto.CreateU
 		return nil, err
 	}
 	if exists {
-		return nil, NewError(authServiceName, response.CodeConflict, MsgUsernameExists, http.StatusConflict, nil)
+		return nil, apperr.NewError(authServiceName, response.CodeConflict, constant.MsgUsernameExists, http.StatusConflict, nil)
 	}
 
 	var user *entity.User
@@ -276,7 +277,7 @@ func (s *authenticationService) CreateUser(ctx context.Context, req *dto.CreateU
 		// Hash password and create credential
 		hashedPassword, err := security.HashPassword(req.Password)
 		if err != nil {
-			return MapError(authServiceName, err, response.CodeInternalError, MsgGenFailed, http.StatusInternalServerError)
+			return apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 		}
 
 		credential := &entity.Credential{
@@ -333,14 +334,14 @@ func (s *authenticationService) CreateUser(ctx context.Context, req *dto.CreateU
 
 // generateAccessToken generates a new Access Token with aggregated permissions.
 func (s *authenticationService) generateAccessToken(ctx context.Context, user *entity.User, tenantID int, tierID int, role *entity.Role) (string, error) {
-	secret := global.Config.JWT.Secret
+	privateKey := global.Config.JWT.PrivateKey
 
 	var permissions map[int]int
-	var roleNames []string
+	var roleName string
 	var roleLevel int
 
 	if role != nil {
-		roleNames = []string{role.Name}
+		roleName = role.Name
 		roleLevel = role.Level
 
 		permVersion, _ := s.cacheService.GetPermissionConfigVersion(ctx)
@@ -379,17 +380,17 @@ func (s *authenticationService) generateAccessToken(ctx context.Context, user *e
 
 	permissionsBlob, err := p.Compress(permissions)
 	if err != nil {
-		return "", MapError(authServiceName, err, response.CodeInternalError, MsgProcessFailed, http.StatusInternalServerError)
+		return "", apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgProcessFailed, http.StatusInternalServerError)
 	}
 
 	return utils.GenerateToken(
-		secret,
+		privateKey,
 		user.ID,
 		user.Username,
 		user.IsAdmin,
 		tenantID,
 		tierID,
-		roleNames,
+		roleName,
 		roleLevel,
 		permissionsBlob,
 		utils.AccessToken,
@@ -398,8 +399,8 @@ func (s *authenticationService) generateAccessToken(ctx context.Context, user *e
 
 // generateRefreshToken generates a new Refresh Token.
 func (s *authenticationService) generateRefreshToken(user *entity.User) (string, error) {
-	secret := global.Config.JWT.Secret
-	return utils.GenerateToken(secret, user.ID, user.Username, user.IsAdmin, 0, 0, nil, 0, "", utils.RefreshToken)
+	privateKey := global.Config.JWT.PrivateKey
+	return utils.GenerateToken(privateKey, user.ID, user.Username, user.IsAdmin, 0, 0, "", 0, "", utils.RefreshToken)
 }
 
 // RefreshToken refreshes the access token.
@@ -413,12 +414,12 @@ func (s *authenticationService) RefreshToken(ctx context.Context, req *dto.Refre
 		}
 
 		if user.IsAdmin == false {
-			return nil, NewError(authServiceName, response.CodeUnauthorized, MsgUnauthorized, http.StatusUnauthorized, nil)
+			return nil, apperr.NewError(authServiceName, response.CodeUnauthorized, constant.MsgUnauthorized, http.StatusUnauthorized, nil)
 		}
 
 		token, err := s.generateAccessToken(ctx, user, 0, 0, nil)
 		if err != nil {
-			return nil, MapError(authServiceName, err, response.CodeInternalError, MsgGenFailed, http.StatusInternalServerError)
+			return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 		}
 
 		return &dto.RefreshTokenResponse{

@@ -7,7 +7,7 @@ meta {
 post {
   url: {{base_url}}/identity/roles
   body: json
-  auth: inherit
+  auth: bearer
 }
 
 body:json {
@@ -16,4 +16,8 @@ body:json {
     "level": 5,
     "parent_id": 3
   }
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

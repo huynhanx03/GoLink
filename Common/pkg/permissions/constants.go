@@ -12,6 +12,9 @@ const (
 	ResourceKeyAttributeDefinition = "attribute_definition"
 	ResourceKeyBilling             = "billing"
 	ResourceKeyPayment             = "payment"
+	ResourceKeyInvoice             = "invoices"
+	ResourceKeyPlan                = "plans"
+	ResourceKeySubscription        = "subscriptions"
 )
 
 // Permission Scopes (Bitmask)

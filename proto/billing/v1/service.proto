@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package billing.v1;
+
+option go_package = "go-link/common/gen/go/billing/v1;billingv1";
+
+service BillingService {
+  rpc GetTierConfig(GetTierConfigRequest) returns (GetTierConfigResponse);
+  rpc CreateSubscription(CreateSubscriptionRequest) returns (CreateSubscriptionResponse);
+  rpc CancelSubscription(CancelSubscriptionRequest) returns (CancelSubscriptionResponse);
+}
+
+message GetTierConfigRequest {
+  int64 tier_id = 1;
+}
+
+message GetTierConfigResponse {
+  int64 tier_id = 1;
+  int64 max_links = 2;
+}
+
+message CreateSubscriptionRequest {
+  int64 user_id = 1;
+  int64 plan_id = 2;
+}
+
+message CreateSubscriptionResponse {
+  int64 subscription_id = 1;
+}
+
+message CancelSubscriptionRequest {
+  int64 subscription_id = 1;
+}
+
+message CancelSubscriptionResponse {
+  bool success = 1;
+}

@@ -4,7 +4,7 @@ variables:
     value: localhost:8080
   - name: base_url
     value: http://localhost:8080
-  - secret: true
-    name: access_token
-  - secret: true
-    name: refresh_token
+  - name: access_token
+    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VydGVzdDAxIiwiZXhwIjoxNzY5MzIwNDk1LCJpYXQiOjE3NjkzMTk1OTUsInN1Yl9pbnQiOjIsInVzZXJuYW1lIjoidXNlcnRlc3QwMSIsImlzX2FkbWluIjp0cnVlLCJwIjoiT2pBQUFBQUFBQUE9IiwidHlwZSI6ImFjY2VzcyJ9.e1TQ303PX6Fu5D2tPQpLkTwHlVYyepHdcC2UOURAwhA
+  - name: refresh_token
+    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VydGVzdCIsImV4cCI6MTc2OTUyNjMwOCwiaWF0IjoxNzY4OTIxNTA4LCJzdWJfaW50Ijo0LCJ1c2VybmFtZSI6InVzZXJ0ZXN0IiwiaXNfYWRtaW4iOmZhbHNlLCJ0eXBlIjoicmVmcmVzaCJ9.AmIsnsgyTZpFtI2YjGm6bDNH4UkEVyJ9lgqH23dWwls

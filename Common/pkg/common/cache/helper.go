@@ -26,6 +26,18 @@ func HandleSetCache(ctx context.Context, model any, c CacheEngine, key string, t
 	return c.Set(ctx, key, model, ttl)
 }
 
+// HandleUpdateCache handles cache update
+func HandleUpdateCache(ctx context.Context, model any, c CacheEngine, key string, ttl time.Duration) {
+	if _, exists, err := c.Get(ctx, key); err == nil && exists {
+		_ = HandleSetCache(ctx, model, c, key, ttl)
+	}
+}
+
+// HandleDeleteCache handles cache delete
+func HandleDeleteCache(ctx context.Context, c CacheEngine, key string) error {
+	return c.Delete(ctx, key)
+}
+
 // GetLocal retrieves a value from LocalCache and asserts its type.
 func GetLocal[T any](c LocalCache[string, any], key string) (T, bool) {
 	var zero T
@@ -43,6 +55,13 @@ func GetLocal[T any](c LocalCache[string, any], key string) (T, bool) {
 // SetLocal sets a value in LocalCache.
 func SetLocal[T any](c LocalCache[string, any], key string, value T, cost int64) bool {
 	return c.Set(key, any(value), cost)
+}
+
+// UpdateLocal helper updates an item in the cache only if it already exists.
+func UpdateLocal[T any](c LocalCache[string, any], key string, value T, cost int64) {
+	if _, found := GetLocal[T](c, key); found {
+		SetLocal(c, key, value, cost)
+	}
 }
 
 // DeleteLocal deletes a value from local cache.

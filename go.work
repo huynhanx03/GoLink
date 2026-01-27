@@ -6,6 +6,7 @@ use (
 	./Common
 	./Generation
 	./Identity
+	./Orchestrator
 	./Payment
 	./Redirection
 )

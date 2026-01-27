@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
 	d "go-link/common/pkg/dto"
@@ -115,7 +116,7 @@ func (s *domainService) Delete(ctx context.Context, id int) error {
 	}
 
 	if !exists {
-		return NewError(domainServiceName, response.CodeNotFound, "domain not found", http.StatusNotFound, nil)
+		return apperr.NewError(domainServiceName, response.CodeNotFound, apperr.MsgNotFound, http.StatusNotFound, nil)
 	}
 
 	if err := s.domainRepo.Delete(ctx, id); err != nil {

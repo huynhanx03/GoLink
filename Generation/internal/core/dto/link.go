@@ -7,3 +7,7 @@ type CreateLinkRequest struct {
 type LinkResponse struct {
 	ShortLink string `json:"short_link"`
 }
+
+type DeleteLinkRequest struct {
+	ID string `json:"id"`
+}

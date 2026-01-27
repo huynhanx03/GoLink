@@ -6,6 +6,8 @@ info:
 collections:
   - name: "Identity"
     path: "collections/Identity"
+  - name: "Billing"
+    path: "collections/Billing"
 
 specs:
 

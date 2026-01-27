@@ -7,12 +7,16 @@ meta {
 post {
   url: {{base_url}}/identity/attribute-definitions
   body: json
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }
 
 body:json {
   {
-    "key": "department",
+    "key": "department1",
     "data_type": "string",
     "description": "User department"
   }

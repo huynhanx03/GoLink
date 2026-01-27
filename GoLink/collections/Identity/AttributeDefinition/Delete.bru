@@ -5,7 +5,11 @@ meta {
 }
 
 delete {
-  url: {{base_url}}/identity/attribute-definitions/5
+  url: {{base_url}}/identity/attribute-definitions/21
   body: none
-  auth: inherit
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
 }

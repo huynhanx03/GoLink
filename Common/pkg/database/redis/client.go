@@ -168,6 +168,16 @@ func (r *RedisEngine) DeleteBulk(ctx context.Context, keys []string) error {
 	return r.client.Del(ctx, keys...).Err()
 }
 
+// Incr increments the key's value by one
+func (r *RedisEngine) Incr(ctx context.Context, key string) (int64, error) {
+	return r.client.Incr(ctx, key).Result()
+}
+
+// Decr decrements the key's value by one
+func (r *RedisEngine) Decr(ctx context.Context, key string) (int64, error) {
+	return r.client.Decr(ctx, key).Result()
+}
+
 // GeoAdd adds geospatial locations
 func (r *RedisEngine) GeoAdd(ctx context.Context, key string, locations ...*cache.GeoLocation) error {
 	r.rwMutex.Lock()
