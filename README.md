@@ -23,7 +23,7 @@ Utilizing **Twitter Snowflake** algorithm for unique ID generation **Optimal Con
 -   **Node**: `2` bits - Max Scale: **4 nodes**.
 -   **Step**: `10` bits - ID Generation Speed: **1,024 req/s/node** (Cluster Capacity: **~4,000 req/s**).
 
-### 1.1 Zero-Latency Short Code Pool
+Zero-Latency Short Code Pool:
 -   **Strategy**: **Pre-generation** utilizing **MPMC Lock-free Queue**.
 -   **Capacity**: **120,000** codes, automatically refilled by background workers.
 
@@ -40,13 +40,17 @@ Utilizing **Twitter Snowflake** algorithm for unique ID generation **Optimal Con
 -   **Routing**: L7 Load Balancing - Precise routing to Generation or Redirection Service.
 -   **Protection**: Rate Limiting & CORS - Anti-Spam/Abuse (100 req/s/IP).
 
+### 5. Identity Service
+Refer to [Identity Service Documentation](Identity/README.md) for High Security, Multi-tenancy and Permission architecture.
+
 ---
 
 ## II. Tech Stack
 
-*   **Language**: Golang (Gin)
-*   **Database**: ScyllaDB
-*   **Cache**: Redis
+*   **Language**: Golang
+*   **Communication**: gRPC, HTTP (Gin)
+*   **Database**: ScyllaDB, PostgreSQL
+*   **Cache**: Redis, TinyLFU (Local Cache)
 *   **Gateway**: Envoy Proxy
 *   **Containerization**: Docker & Docker Compose
 
