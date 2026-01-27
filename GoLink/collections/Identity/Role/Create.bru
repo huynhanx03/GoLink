@@ -1,0 +1,23 @@
+meta {
+  name: Create
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/identity/roles
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "guest",
+    "level": 5,
+    "parent_id": 3
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

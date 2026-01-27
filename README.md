@@ -23,6 +23,10 @@ Utilizing **Twitter Snowflake** algorithm for unique ID generation **Optimal Con
 -   **Node**: `2` bits - Max Scale: **4 nodes**.
 -   **Step**: `10` bits - ID Generation Speed: **1,024 req/s/node** (Cluster Capacity: **~4,000 req/s**).
 
+### 1.1 Zero-Latency Short Code Pool
+-   **Strategy**: **Pre-generation** utilizing **MPMC Lock-free Queue**.
+-   **Capacity**: **120,000** codes, automatically refilled by background workers.
+
 ### 2. Database: ScyllaDB
 -   **Performance**: Write-Heavy Optimization (LSM Tree) - Extremely high write throughput, suitable for continuous short link generation.
 -   **Architecture**: Peer-to-Peer (Masterless) - No Single Point of Failure (SPOF).
@@ -50,8 +54,8 @@ Utilizing **Twitter Snowflake** algorithm for unique ID generation **Optimal Con
 ## III. Capacity Estimates
 
 ### Benchmark
--   **Write Volume**: 1,000,000 links/day (~12 TPS).
--   **Read Volume**: 100,000,000 clicks/day (~1,200 RPS).
+-   **Write Volume**: 1,000,000 links/day (Avg ~12 TPS, **Peak ~60 TPS**).
+-   **Read Volume**: 100,000,000 clicks/day (Avg ~1,200 RPS, **Peak ~6,000 RPS**).
 -   **Data Size**: 0.5 KB average/record.
 
 ### ID Space

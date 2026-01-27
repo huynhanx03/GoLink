@@ -1,0 +1,24 @@
+meta {
+  name: Create
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/identity/permissions
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "role_id": 1,
+    "resource_id": 1,
+    "description": "Full CRUD access to users",
+    "scopes": 15
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

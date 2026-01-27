@@ -1,0 +1,13 @@
+version: v1
+plugins:
+  - plugin: buf.build/protocolbuffers/go
+    out: Common/gen/go
+    opt: paths=source_relative
+  - plugin: buf.build/grpc/go
+    out: Common/gen/go
+    opt: paths=source_relative
+  - plugin: buf.build/grpc-ecosystem/gateway
+    out: Common/gen/go
+    opt: paths=source_relative
+  - plugin: buf.build/grpc-ecosystem/openapiv2
+    out: Common/gen/openapiv2

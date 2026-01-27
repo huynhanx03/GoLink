@@ -1,0 +1,16 @@
+opencollection: 1.0.0
+info:
+  name: "GoLink"
+  type: workspace
+
+collections:
+  - name: "Identity"
+    path: "collections/Identity"
+  - name: "Billing"
+    path: "collections/Billing"
+
+specs:
+
+docs: ''
+
+activeEnvironmentUid: pi7i8b000000000000000

@@ -11,9 +11,9 @@ func SetupRedis() {
 	engine, err := redis.NewConnection(&config)
 
 	if err != nil {
-		global.Logger.Sugar().Fatalf("Failed to connect to Redis: %v", err)
+		global.LoggerZap.Sugar().Fatalf("Failed to connect to Redis: %v", err)
 	}
 
 	global.Redis = engine
-	global.Logger.Sugar().Info("Connected to Redis successfully")
+	global.LoggerZap.Sugar().Info("Connected to Redis successfully")
 }

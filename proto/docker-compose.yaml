@@ -1,0 +1,10 @@
+version: "3.4"
+
+services:
+  generate_go:
+    build:
+      context: .. # Build context needs to be root or one level up to see proto/ and scripts if needed. Here we assume we run from proto/ folder, but context is .. to map volumes correctly
+      dockerfile: proto/Dockerfile
+    volumes:
+      - "..:/workspace" # Mount the entire project root to /workspace
+    working_dir: /workspace

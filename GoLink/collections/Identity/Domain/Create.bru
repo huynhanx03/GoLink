@@ -1,0 +1,22 @@
+meta {
+  name: Create
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/identity/domains
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "tenant_id": 4,
+    "domain": "acme.example.com23"
+  }
+}
+
+auth:bearer {
+  token: {{access_token}}
+}

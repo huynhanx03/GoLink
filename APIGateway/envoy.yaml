@@ -4,7 +4,7 @@ static_resources:
     address:
       socket_address:
         address: 0.0.0.0
-        port_value: 8080
+        port_value: 2222
     filter_chains:
     - filters:
       - name: envoy.filters.network.http_connection_manager
@@ -64,6 +64,21 @@ static_resources:
                     prefix: "/"
                   route:
                     cluster: redirection_service
+                - match:
+                    prefix: "/identity/"
+                  route:
+                    cluster: identity_service
+                    prefix_rewrite: "/"
+                - match:
+                    prefix: "/billing/"
+                  route:
+                    cluster: billing_service
+                    prefix_rewrite: "/"
+                - match:
+                    prefix: "/orchestrator/"
+                  route:
+                    cluster: orchestrator_service
+                    prefix_rewrite: "/"
 
   clusters:
   - name: generation_service
@@ -93,3 +108,45 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 2101
+
+  - name: identity_service
+    type: LOGICAL_DNS
+    connect_timeout: 5s
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: identity_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 2102
+  
+  - name: billing_service
+    type: LOGICAL_DNS
+    connect_timeout: 5s
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: billing_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 2103
+  
+  - name: orchestrator_service
+    type: LOGICAL_DNS
+    connect_timeout: 5s
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: orchestrator_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 2104

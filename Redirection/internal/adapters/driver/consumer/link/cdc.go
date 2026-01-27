@@ -35,7 +35,7 @@ func NewCDCConsumer(cfg *kafka.Config, linkService ports.LinkService) (ports.Lin
 
 	taskFunc := func(batch []*cdc.DebeziumPayload[entity.Link]) {
 		if err := linkService.HandleLinkBatchChange(context.Background(), batch); err != nil {
-			global.Logger.Error("Failed to process link batch", zap.Error(err))
+			global.LoggerZap.Error("Failed to process link batch", zap.Error(err))
 		}
 	}
 
@@ -70,7 +70,7 @@ func (c *CDCConsumer) Start(ctx context.Context) error {
 	handler := func(ctx context.Context, key, value []byte) error {
 		_, payload, err := c.extractPayload(key, value)
 		if err != nil {
-			global.Logger.Warn("Skipping malformed CDC message", zap.Error(err))
+			global.LoggerZap.Warn("Skipping malformed CDC message", zap.Error(err))
 			return nil
 		}
 
@@ -88,10 +88,10 @@ func (c *CDCConsumer) Start(ctx context.Context) error {
 	}
 
 	errHandler := func(err error) {
-		global.Logger.Error("LinkCDCConsumer error", zap.Error(err))
+		global.LoggerZap.Error("LinkCDCConsumer error", zap.Error(err))
 	}
 
-	global.Logger.Info("Starting Link CDC Consumer (Batch Mode)", zap.String("topic", constant.TopicLinkCDC))
+	global.LoggerZap.Info("Starting Link CDC Consumer (Batch Mode)", zap.String("topic", constant.TopicLinkCDC))
 	return c.consumer.Start(ctx, []string{constant.TopicLinkCDC}, handler, errHandler)
 }
 
@@ -119,7 +119,7 @@ func (c *CDCConsumer) processBatchLoop(
 		copy(finalBatch, batch)
 
 		if err := c.workerPool.Invoke(finalBatch); err != nil {
-			global.Logger.Error("Failed to submit batch to worker pool", zap.Error(err))
+			global.LoggerZap.Error("Failed to submit batch to worker pool", zap.Error(err))
 		}
 
 		batch = batch[:0]
