@@ -80,6 +80,11 @@ func Name(v string) predicate.Plan {
 	return predicate.Plan(sql.FieldEQ(FieldName, v))
 }
 
+// Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
+func Description(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldEQ(FieldDescription, v))
+}
+
 // BasePrice applies equality check predicate on the "base_price" field. It's identical to BasePriceEQ.
 func BasePrice(v float64) predicate.Plan {
 	return predicate.Plan(sql.FieldEQ(FieldBasePrice, v))
@@ -340,6 +345,81 @@ func NameContainsFold(v string) predicate.Plan {
 	return predicate.Plan(sql.FieldContainsFold(FieldName, v))
 }
 
+// DescriptionEQ applies the EQ predicate on the "description" field.
+func DescriptionEQ(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldEQ(FieldDescription, v))
+}
+
+// DescriptionNEQ applies the NEQ predicate on the "description" field.
+func DescriptionNEQ(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldNEQ(FieldDescription, v))
+}
+
+// DescriptionIn applies the In predicate on the "description" field.
+func DescriptionIn(vs ...string) predicate.Plan {
+	return predicate.Plan(sql.FieldIn(FieldDescription, vs...))
+}
+
+// DescriptionNotIn applies the NotIn predicate on the "description" field.
+func DescriptionNotIn(vs ...string) predicate.Plan {
+	return predicate.Plan(sql.FieldNotIn(FieldDescription, vs...))
+}
+
+// DescriptionGT applies the GT predicate on the "description" field.
+func DescriptionGT(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldGT(FieldDescription, v))
+}
+
+// DescriptionGTE applies the GTE predicate on the "description" field.
+func DescriptionGTE(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldGTE(FieldDescription, v))
+}
+
+// DescriptionLT applies the LT predicate on the "description" field.
+func DescriptionLT(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldLT(FieldDescription, v))
+}
+
+// DescriptionLTE applies the LTE predicate on the "description" field.
+func DescriptionLTE(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldLTE(FieldDescription, v))
+}
+
+// DescriptionContains applies the Contains predicate on the "description" field.
+func DescriptionContains(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldContains(FieldDescription, v))
+}
+
+// DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
+func DescriptionHasPrefix(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldHasPrefix(FieldDescription, v))
+}
+
+// DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
+func DescriptionHasSuffix(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldHasSuffix(FieldDescription, v))
+}
+
+// DescriptionIsNil applies the IsNil predicate on the "description" field.
+func DescriptionIsNil() predicate.Plan {
+	return predicate.Plan(sql.FieldIsNull(FieldDescription))
+}
+
+// DescriptionNotNil applies the NotNil predicate on the "description" field.
+func DescriptionNotNil() predicate.Plan {
+	return predicate.Plan(sql.FieldNotNull(FieldDescription))
+}
+
+// DescriptionEqualFold applies the EqualFold predicate on the "description" field.
+func DescriptionEqualFold(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldEqualFold(FieldDescription, v))
+}
+
+// DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
+func DescriptionContainsFold(v string) predicate.Plan {
+	return predicate.Plan(sql.FieldContainsFold(FieldDescription, v))
+}
+
 // BasePriceEQ applies the EQ predicate on the "base_price" field.
 func BasePriceEQ(v float64) predicate.Plan {
 	return predicate.Plan(sql.FieldEQ(FieldBasePrice, v))
@@ -445,14 +525,14 @@ func PeriodContainsFold(v string) predicate.Plan {
 	return predicate.Plan(sql.FieldContainsFold(FieldPeriod, v))
 }
 
-// LimitsIsNil applies the IsNil predicate on the "limits" field.
-func LimitsIsNil() predicate.Plan {
-	return predicate.Plan(sql.FieldIsNull(FieldLimits))
+// FeaturesIsNil applies the IsNil predicate on the "features" field.
+func FeaturesIsNil() predicate.Plan {
+	return predicate.Plan(sql.FieldIsNull(FieldFeatures))
 }
 
-// LimitsNotNil applies the NotNil predicate on the "limits" field.
-func LimitsNotNil() predicate.Plan {
-	return predicate.Plan(sql.FieldNotNull(FieldLimits))
+// FeaturesNotNil applies the NotNil predicate on the "features" field.
+func FeaturesNotNil() predicate.Plan {
+	return predicate.Plan(sql.FieldNotNull(FieldFeatures))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

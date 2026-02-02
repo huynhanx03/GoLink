@@ -98,24 +98,24 @@ func (_u *TenantUpdate) SetNillableName(v *string) *TenantUpdate {
 	return _u
 }
 
-// SetTierID sets the "tier_id" field.
-func (_u *TenantUpdate) SetTierID(v int) *TenantUpdate {
-	_u.mutation.ResetTierID()
-	_u.mutation.SetTierID(v)
+// SetPlanID sets the "plan_id" field.
+func (_u *TenantUpdate) SetPlanID(v int) *TenantUpdate {
+	_u.mutation.ResetPlanID()
+	_u.mutation.SetPlanID(v)
 	return _u
 }
 
-// SetNillableTierID sets the "tier_id" field if the given value is not nil.
-func (_u *TenantUpdate) SetNillableTierID(v *int) *TenantUpdate {
+// SetNillablePlanID sets the "plan_id" field if the given value is not nil.
+func (_u *TenantUpdate) SetNillablePlanID(v *int) *TenantUpdate {
 	if v != nil {
-		_u.SetTierID(*v)
+		_u.SetPlanID(*v)
 	}
 	return _u
 }
 
-// AddTierID adds value to the "tier_id" field.
-func (_u *TenantUpdate) AddTierID(v int) *TenantUpdate {
-	_u.mutation.AddTierID(v)
+// AddPlanID adds value to the "plan_id" field.
+func (_u *TenantUpdate) AddPlanID(v int) *TenantUpdate {
+	_u.mutation.AddPlanID(v)
 	return _u
 }
 
@@ -287,11 +287,11 @@ func (_u *TenantUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(tenant.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.TierID(); ok {
-		_spec.SetField(tenant.FieldTierID, field.TypeInt, value)
+	if value, ok := _u.mutation.PlanID(); ok {
+		_spec.SetField(tenant.FieldPlanID, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.AddedTierID(); ok {
-		_spec.AddField(tenant.FieldTierID, field.TypeInt, value)
+	if value, ok := _u.mutation.AddedPlanID(); ok {
+		_spec.AddField(tenant.FieldPlanID, field.TypeInt, value)
 	}
 	if _u.mutation.TenantMembersCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -472,24 +472,24 @@ func (_u *TenantUpdateOne) SetNillableName(v *string) *TenantUpdateOne {
 	return _u
 }
 
-// SetTierID sets the "tier_id" field.
-func (_u *TenantUpdateOne) SetTierID(v int) *TenantUpdateOne {
-	_u.mutation.ResetTierID()
-	_u.mutation.SetTierID(v)
+// SetPlanID sets the "plan_id" field.
+func (_u *TenantUpdateOne) SetPlanID(v int) *TenantUpdateOne {
+	_u.mutation.ResetPlanID()
+	_u.mutation.SetPlanID(v)
 	return _u
 }
 
-// SetNillableTierID sets the "tier_id" field if the given value is not nil.
-func (_u *TenantUpdateOne) SetNillableTierID(v *int) *TenantUpdateOne {
+// SetNillablePlanID sets the "plan_id" field if the given value is not nil.
+func (_u *TenantUpdateOne) SetNillablePlanID(v *int) *TenantUpdateOne {
 	if v != nil {
-		_u.SetTierID(*v)
+		_u.SetPlanID(*v)
 	}
 	return _u
 }
 
-// AddTierID adds value to the "tier_id" field.
-func (_u *TenantUpdateOne) AddTierID(v int) *TenantUpdateOne {
-	_u.mutation.AddTierID(v)
+// AddPlanID adds value to the "plan_id" field.
+func (_u *TenantUpdateOne) AddPlanID(v int) *TenantUpdateOne {
+	_u.mutation.AddPlanID(v)
 	return _u
 }
 
@@ -691,11 +691,11 @@ func (_u *TenantUpdateOne) sqlSave(ctx context.Context) (_node *Tenant, err erro
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(tenant.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.TierID(); ok {
-		_spec.SetField(tenant.FieldTierID, field.TypeInt, value)
+	if value, ok := _u.mutation.PlanID(); ok {
+		_spec.SetField(tenant.FieldPlanID, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.AddedTierID(); ok {
-		_spec.AddField(tenant.FieldTierID, field.TypeInt, value)
+	if value, ok := _u.mutation.AddedPlanID(); ok {
+		_spec.AddField(tenant.FieldPlanID, field.TypeInt, value)
 	}
 	if _u.mutation.TenantMembersCleared() {
 		edge := &sqlgraph.EdgeSpec{

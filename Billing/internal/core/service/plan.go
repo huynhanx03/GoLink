@@ -75,8 +75,8 @@ func (s *planService) Update(ctx context.Context, id int, req *dto.UpdatePlanReq
 	if req.BasePrice != nil {
 		plan.BasePrice = *req.BasePrice
 	}
-	if req.Limits != nil {
-		plan.Limits = *req.Limits
+	if req.Features != nil {
+		plan.Features = *req.Features
 	}
 	if req.IsActive != nil {
 		plan.IsActive = *req.IsActive

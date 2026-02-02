@@ -48,3 +48,11 @@ func (a *identityClientAdapter) DeleteUser(ctx context.Context, userID int64) er
 	})
 	return err
 }
+
+func (a *identityClientAdapter) UpdateTenantPlan(ctx context.Context, tenantID int64, planID int64) error {
+	_, err := a.client.UpdateTenantPlan(ctx, &identityv1.UpdateTenantPlanRequest{
+		TenantId: tenantID,
+		PlanId:   planID,
+	})
+	return err
+}

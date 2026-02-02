@@ -9,7 +9,7 @@ type CreateTenantRequest struct {
 type UpdateTenantRequest struct {
 	ID     int     `json:"-" uri:"id"`
 	Name   *string `json:"name" validate:"omitempty,min=2,max=50"`
-	TierID *int    `json:"tier_id"`
+	PlanID *int    `json:"plan_id"`
 }
 
 // GetTenantRequest represents request to get a tenant by ID.
@@ -26,5 +26,5 @@ type DeleteTenantRequest struct {
 type TenantResponse struct {
 	ID     int    `json:"id"`
 	Name   string `json:"name"`
-	TierID int    `json:"tier_id"`
+	PlanID int    `json:"plan_id"`
 }

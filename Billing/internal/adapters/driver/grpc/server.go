@@ -10,8 +10,9 @@ import (
 // V1Routes registers the billing service routes
 func V1Routes(
 	planService ports.PlanService,
+	subscriptionService ports.SubscriptionService,
 ) func(srv *grpc.Server) {
 	return func(srv *grpc.Server) {
-		billingv1.RegisterBillingServiceServer(srv, NewBillingServer(planService))
+		billingv1.RegisterBillingServiceServer(srv, NewBillingServer(planService, subscriptionService))
 	}
 }

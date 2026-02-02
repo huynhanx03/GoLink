@@ -1072,10 +1072,11 @@ type PlanMutation struct {
 	deleted_by           *int
 	adddeleted_by        *int
 	name                 *string
+	description          *string
 	base_price           *float64
 	addbase_price        *float64
 	period               *string
-	limits               *map[string]interface{}
+	features             *map[string]interface{}
 	is_active            *bool
 	clearedFields        map[string]struct{}
 	subscriptions        map[int]struct{}
@@ -1411,6 +1412,55 @@ func (m *PlanMutation) ResetName() {
 	m.name = nil
 }
 
+// SetDescription sets the "description" field.
+func (m *PlanMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PlanMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Plan entity.
+// If the Plan object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PlanMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *PlanMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[plan.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *PlanMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[plan.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PlanMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, plan.FieldDescription)
+}
+
 // SetBasePrice sets the "base_price" field.
 func (m *PlanMutation) SetBasePrice(f float64) {
 	m.base_price = &f
@@ -1503,53 +1553,53 @@ func (m *PlanMutation) ResetPeriod() {
 	m.period = nil
 }
 
-// SetLimits sets the "limits" field.
-func (m *PlanMutation) SetLimits(value map[string]interface{}) {
-	m.limits = &value
+// SetFeatures sets the "features" field.
+func (m *PlanMutation) SetFeatures(value map[string]interface{}) {
+	m.features = &value
 }
 
-// Limits returns the value of the "limits" field in the mutation.
-func (m *PlanMutation) Limits() (r map[string]interface{}, exists bool) {
-	v := m.limits
+// Features returns the value of the "features" field in the mutation.
+func (m *PlanMutation) Features() (r map[string]interface{}, exists bool) {
+	v := m.features
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldLimits returns the old "limits" field's value of the Plan entity.
+// OldFeatures returns the old "features" field's value of the Plan entity.
 // If the Plan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PlanMutation) OldLimits(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *PlanMutation) OldFeatures(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldLimits is only allowed on UpdateOne operations")
+		return v, errors.New("OldFeatures is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldLimits requires an ID field in the mutation")
+		return v, errors.New("OldFeatures requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldLimits: %w", err)
+		return v, fmt.Errorf("querying old value for OldFeatures: %w", err)
 	}
-	return oldValue.Limits, nil
+	return oldValue.Features, nil
 }
 
-// ClearLimits clears the value of the "limits" field.
-func (m *PlanMutation) ClearLimits() {
-	m.limits = nil
-	m.clearedFields[plan.FieldLimits] = struct{}{}
+// ClearFeatures clears the value of the "features" field.
+func (m *PlanMutation) ClearFeatures() {
+	m.features = nil
+	m.clearedFields[plan.FieldFeatures] = struct{}{}
 }
 
-// LimitsCleared returns if the "limits" field was cleared in this mutation.
-func (m *PlanMutation) LimitsCleared() bool {
-	_, ok := m.clearedFields[plan.FieldLimits]
+// FeaturesCleared returns if the "features" field was cleared in this mutation.
+func (m *PlanMutation) FeaturesCleared() bool {
+	_, ok := m.clearedFields[plan.FieldFeatures]
 	return ok
 }
 
-// ResetLimits resets all changes to the "limits" field.
-func (m *PlanMutation) ResetLimits() {
-	m.limits = nil
-	delete(m.clearedFields, plan.FieldLimits)
+// ResetFeatures resets all changes to the "features" field.
+func (m *PlanMutation) ResetFeatures() {
+	m.features = nil
+	delete(m.clearedFields, plan.FieldFeatures)
 }
 
 // SetIsActive sets the "is_active" field.
@@ -1676,7 +1726,7 @@ func (m *PlanMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PlanMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, plan.FieldCreatedAt)
 	}
@@ -1692,14 +1742,17 @@ func (m *PlanMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, plan.FieldName)
 	}
+	if m.description != nil {
+		fields = append(fields, plan.FieldDescription)
+	}
 	if m.base_price != nil {
 		fields = append(fields, plan.FieldBasePrice)
 	}
 	if m.period != nil {
 		fields = append(fields, plan.FieldPeriod)
 	}
-	if m.limits != nil {
-		fields = append(fields, plan.FieldLimits)
+	if m.features != nil {
+		fields = append(fields, plan.FieldFeatures)
 	}
 	if m.is_active != nil {
 		fields = append(fields, plan.FieldIsActive)
@@ -1722,12 +1775,14 @@ func (m *PlanMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedBy()
 	case plan.FieldName:
 		return m.Name()
+	case plan.FieldDescription:
+		return m.Description()
 	case plan.FieldBasePrice:
 		return m.BasePrice()
 	case plan.FieldPeriod:
 		return m.Period()
-	case plan.FieldLimits:
-		return m.Limits()
+	case plan.FieldFeatures:
+		return m.Features()
 	case plan.FieldIsActive:
 		return m.IsActive()
 	}
@@ -1749,12 +1804,14 @@ func (m *PlanMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDeletedBy(ctx)
 	case plan.FieldName:
 		return m.OldName(ctx)
+	case plan.FieldDescription:
+		return m.OldDescription(ctx)
 	case plan.FieldBasePrice:
 		return m.OldBasePrice(ctx)
 	case plan.FieldPeriod:
 		return m.OldPeriod(ctx)
-	case plan.FieldLimits:
-		return m.OldLimits(ctx)
+	case plan.FieldFeatures:
+		return m.OldFeatures(ctx)
 	case plan.FieldIsActive:
 		return m.OldIsActive(ctx)
 	}
@@ -1801,6 +1858,13 @@ func (m *PlanMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
+	case plan.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
 	case plan.FieldBasePrice:
 		v, ok := value.(float64)
 		if !ok {
@@ -1815,12 +1879,12 @@ func (m *PlanMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPeriod(v)
 		return nil
-	case plan.FieldLimits:
+	case plan.FieldFeatures:
 		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetLimits(v)
+		m.SetFeatures(v)
 		return nil
 	case plan.FieldIsActive:
 		v, ok := value.(bool)
@@ -1892,8 +1956,11 @@ func (m *PlanMutation) ClearedFields() []string {
 	if m.FieldCleared(plan.FieldDeletedBy) {
 		fields = append(fields, plan.FieldDeletedBy)
 	}
-	if m.FieldCleared(plan.FieldLimits) {
-		fields = append(fields, plan.FieldLimits)
+	if m.FieldCleared(plan.FieldDescription) {
+		fields = append(fields, plan.FieldDescription)
+	}
+	if m.FieldCleared(plan.FieldFeatures) {
+		fields = append(fields, plan.FieldFeatures)
 	}
 	return fields
 }
@@ -1915,8 +1982,11 @@ func (m *PlanMutation) ClearField(name string) error {
 	case plan.FieldDeletedBy:
 		m.ClearDeletedBy()
 		return nil
-	case plan.FieldLimits:
-		m.ClearLimits()
+	case plan.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case plan.FieldFeatures:
+		m.ClearFeatures()
 		return nil
 	}
 	return fmt.Errorf("unknown Plan nullable field %s", name)
@@ -1941,14 +2011,17 @@ func (m *PlanMutation) ResetField(name string) error {
 	case plan.FieldName:
 		m.ResetName()
 		return nil
+	case plan.FieldDescription:
+		m.ResetDescription()
+		return nil
 	case plan.FieldBasePrice:
 		m.ResetBasePrice()
 		return nil
 	case plan.FieldPeriod:
 		m.ResetPeriod()
 		return nil
-	case plan.FieldLimits:
-		m.ResetLimits()
+	case plan.FieldFeatures:
+		m.ResetFeatures()
 		return nil
 	case plan.FieldIsActive:
 		m.ResetIsActive()

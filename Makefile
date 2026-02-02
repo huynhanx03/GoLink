@@ -26,24 +26,41 @@ run-identity:
 run-billing:
 	cd Billing && go run cmd/server/main.go
 
-.PHONY: init-ent-identity
-init-ent-identity:
+.PHONY: gen-ent-identity
+gen-ent-identity:
 	go generate ./Identity/...
 
-.PHONY: init-ent-billing
-init-ent-billing:
+.PHONY: gen-ent-billing
+gen-ent-billing:
 	go generate ./Billing/...
 
-.PHONY: init-ent
-init-ent:
-	make init-ent-identity
-	make init-ent-billing
+.PHONY: gen-ent
+gen-ent:
+	make gen-ent-identity
+	make gen-ent-billing
+
+.PHONY: init-db-generation
+init-db-generation:
+	docker exec -i scylla-node1 cqlsh < Generation/scripts/init_db.cql
+
+.PHONY: init-db-redirection
+init-db-redirection:
+	docker exec -i scylla-node1 cqlsh < Redirection/scripts/init_db.cql
+
+.PHONY: init-db-identity
+init-db-identity:
+	docker exec -i golink-postgres psql -U admin -d postgres < Identity/scripts/seed.sql
+
+.PHONY: init-db-billing
+init-db-billing:
+	docker exec -i golink-postgres psql -U admin -d postgres < Billing/scripts/seed.sql
 
 .PHONY: init-db
 init-db:
-	docker exec -i scylla-node1 cqlsh < Generation/scripts/init_db.cql
-	docker exec -i scylla-node1 cqlsh < Redirection/scripts/init_db.cql
-	docker exec -i golink-postgres psql -U admin -d postgres < Identity/scripts/seed.sql
+	make init-db-generation
+	make init-db-redirection
+	make init-db-identity
+	make init-db-billing
 
 .PHONY: init-cdc
 init-cdc:
@@ -53,7 +70,7 @@ init-cdc:
 init-all:
 	make init-db
 	make init-cdc
-	make init-ent
+	make gen-ent
 
 .PHONY: install-tools
 install-tools:

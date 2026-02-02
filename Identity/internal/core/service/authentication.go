@@ -25,8 +25,11 @@ const (
 
 	credentialTypePassword = "password"
 	roleNameOwner          = "owner"
-	defaultTierID          = 1
+	defaultPlanID          = 1
 	credentialKeyHash      = "hash"
+
+	EmptyTenantID = -1
+	EmptyTierID   = -1
 )
 
 type authenticationService struct {
@@ -93,7 +96,7 @@ func (s *authenticationService) Register(ctx context.Context, req *dto.RegisterR
 		// Create personal tenant with username as name
 		tenant := &entity.Tenant{
 			Name:   req.Username,
-			TierID: defaultTierID, // TODO: UPDATE BILLING SERVICE
+			PlanID: defaultPlanID, // TODO: UPDATE BILLING SERVICE
 		}
 		if err := s.tenantRepo.Create(ctx, tenant); err != nil {
 			return err
@@ -164,12 +167,9 @@ func (s *authenticationService) Login(ctx context.Context, req *dto.LoginRequest
 		return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 	}
 
-	var accessToken string
-	if user.IsAdmin {
-		accessToken, err = s.generateAccessToken(ctx, user, 0, 0, nil)
-		if err != nil {
-			return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
-		}
+	accessToken, err := s.generateAccessToken(ctx, user, EmptyTenantID, EmptyTierID, nil)
+	if err != nil {
+		return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
 	}
 
 	return &dto.LoginResponse{
@@ -204,7 +204,7 @@ func (s *authenticationService) AcquireToken(ctx context.Context, req *dto.Acqui
 		return nil, err
 	}
 
-	accessToken, err := s.generateAccessToken(ctx, user, req.TenantID, tenant.TierID, role)
+	accessToken, err := s.generateAccessToken(ctx, user, req.TenantID, tenant.PlanID, role)
 	if err != nil {
 		return nil, err
 	}
@@ -405,40 +405,35 @@ func (s *authenticationService) generateRefreshToken(user *entity.User) (string,
 
 // RefreshToken refreshes the access token.
 func (s *authenticationService) RefreshToken(ctx context.Context, req *dto.RefreshTokenRequest, userID int) (*dto.RefreshTokenResponse, error) {
-	// Refresh token for admin
-	if req.TenantID == 0 {
-		user, err := s.userRepo.Get(ctx, userID)
+	// If TenantID is provided, refresh that specific tenant token via AcquireToken
+	if req.TenantID > 0 {
+		request := &dto.AcquireTokenRequest{
+			UserID:   userID,
+			TenantID: req.TenantID,
+		}
 
+		response, err := s.AcquireToken(ctx, request)
 		if err != nil {
 			return nil, err
 		}
 
-		if user.IsAdmin == false {
-			return nil, apperr.NewError(authServiceName, response.CodeUnauthorized, constant.MsgUnauthorized, http.StatusUnauthorized, nil)
-		}
-
-		token, err := s.generateAccessToken(ctx, user, 0, 0, nil)
-		if err != nil {
-			return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
-		}
-
 		return &dto.RefreshTokenResponse{
-			AccessToken: token,
+			AccessToken: response.AccessToken,
 		}, nil
 	}
 
-	request := &dto.AcquireTokenRequest{
-		UserID:   userID,
-		TenantID: req.TenantID,
-	}
-
-	// Refresh token for tenant
-	response, err := s.AcquireToken(ctx, request)
+	// Otherwise, generate a default User Context token (Empty Context)
+	user, err := s.userRepo.Get(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
+	token, err := s.generateAccessToken(ctx, user, EmptyTenantID, EmptyTierID, nil)
+	if err != nil {
+		return nil, apperr.MapError(authServiceName, err, response.CodeInternalError, apperr.MsgGenFailed, http.StatusInternalServerError)
+	}
+
 	return &dto.RefreshTokenResponse{
-		AccessToken: response.AccessToken,
+		AccessToken: token,
 	}, nil
 }

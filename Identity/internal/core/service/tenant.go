@@ -65,8 +65,8 @@ func (s *tenantService) Update(ctx context.Context, id int, req *dto.UpdateTenan
 	if req.Name != nil {
 		tenant.Name = *req.Name
 	}
-	if req.TierID != nil {
-		tenant.TierID = *req.TierID
+	if req.PlanID != nil {
+		tenant.PlanID = *req.PlanID
 	}
 
 	tenant.ID = id

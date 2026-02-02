@@ -16,8 +16,8 @@ func BuildCreatePlan(ctx context.Context, e *entity.Plan) *generate.PlanCreate {
 		SetPeriod(e.Period).
 		SetIsActive(e.IsActive)
 
-	if e.Limits != nil {
-		create.SetLimits(e.Limits)
+	if e.Features != nil {
+		create.SetFeatures(e.Features)
 	}
 
 	return create
@@ -27,11 +27,12 @@ func BuildUpdatePlan(ctx context.Context, e *entity.Plan) *generate.PlanUpdateOn
 	client := global.EntClient.DB(ctx)
 	update := client.Plan.UpdateOneID(e.ID).
 		SetName(e.Name).
+		SetDescription(e.Description).
 		SetBasePrice(e.BasePrice).
 		SetIsActive(e.IsActive)
 
-	if e.Limits != nil {
-		update.SetLimits(e.Limits)
+	if e.Features != nil {
+		update.SetFeatures(e.Features)
 	}
 
 	return update

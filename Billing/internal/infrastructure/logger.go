@@ -2,7 +2,8 @@ package infrastructure
 
 import (
 	"go-link/common/pkg/logger"
-	"go-link/identity/global"
+
+	"go-link/billing/global"
 )
 
 // SetupLogger initializes the logger

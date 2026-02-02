@@ -13,7 +13,7 @@ func ToTenantResponse(e *entity.Tenant) *dto.TenantResponse {
 	return &dto.TenantResponse{
 		ID:     e.ID,
 		Name:   e.Name,
-		TierID: e.TierID,
+		PlanID: e.PlanID,
 	}
 }
 
@@ -21,6 +21,6 @@ func ToTenantResponse(e *entity.Tenant) *dto.TenantResponse {
 func ToTenantEntityFromCreate(req *dto.CreateTenantRequest) *entity.Tenant {
 	return &entity.Tenant{
 		Name:   req.Name,
-		TierID: 0,
+		PlanID: 0,
 	}
 }

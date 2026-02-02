@@ -13,7 +13,7 @@ func ToTenantEntity(m *generate.Tenant) *entity.Tenant {
 	return &entity.Tenant{
 		ID:        m.ID,
 		Name:      m.Name,
-		TierID:    m.TierID,
+		PlanID:    m.PlanID,
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
 	}
@@ -27,7 +27,7 @@ func ToTenantModel(e *entity.Tenant) *generate.Tenant {
 	return &generate.Tenant{
 		ID:        e.ID,
 		Name:      e.Name,
-		TierID:    e.TierID,
+		PlanID:    e.PlanID,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 	}

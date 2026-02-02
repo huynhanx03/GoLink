@@ -7,5 +7,5 @@ import (
 
 var (
 	Config settings.Config
-	Logger *logger.LoggerZap
+	LoggerZap *logger.LoggerZap
 )

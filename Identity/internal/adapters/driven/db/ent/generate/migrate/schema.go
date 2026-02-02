@@ -194,7 +194,7 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_by", Type: field.TypeInt, Nullable: true},
 		{Name: "name", Type: field.TypeString},
-		{Name: "tier_id", Type: field.TypeInt, Default: 0},
+		{Name: "plan_id", Type: field.TypeInt, Default: 0},
 	}
 	// TenantsTable holds the schema information for the "tenants" table.
 	TenantsTable = &schema.Table{

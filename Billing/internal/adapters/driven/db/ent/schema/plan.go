@@ -28,6 +28,10 @@ func (Plan) Fields() []ent.Field {
 			MaxLen(100).
 			NotEmpty().
 			Comment("Display name"),
+		field.String("description").
+			MaxLen(200).
+			Optional().
+			Comment("Plan description"),
 		field.Float("base_price").
 			Positive().
 			Comment("Base price in USD"),
@@ -35,7 +39,7 @@ func (Plan) Fields() []ent.Field {
 			MaxLen(20).
 			NotEmpty().
 			Comment("Billing period: 'month' or 'year'"),
-		field.JSON("limits", map[string]interface{}{}).
+		field.JSON("features", map[string]interface{}{}).
 			Optional().
 			Comment("Feature limits (e.g., {\"max_links\": 1000})"),
 		field.Bool("is_active").

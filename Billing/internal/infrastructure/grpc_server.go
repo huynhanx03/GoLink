@@ -22,8 +22,9 @@ type GRPCServer struct {
 func NewGRPCServer() *GRPCServer {
 	cfg := global.Config
 	planService := di.GlobalContainer.PlanContainer.Service
+	subscriptionService := di.GlobalContainer.SubscriptionContainer.Service
 
-	serverRoutes := grpcConf.V1Routes(planService)
+	serverRoutes := grpcConf.V1Routes(planService, subscriptionService)
 	srv := grpc.NewServer(
 		grpc.UnaryInterceptor(interceptors.ServerAuthInterceptor()),
 	)

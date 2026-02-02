@@ -92,12 +92,16 @@ func init() {
 			return nil
 		}
 	}()
+	// planDescDescription is the schema descriptor for description field.
+	planDescDescription := planFields[1].Descriptor()
+	// plan.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	plan.DescriptionValidator = planDescDescription.Validators[0].(func(string) error)
 	// planDescBasePrice is the schema descriptor for base_price field.
-	planDescBasePrice := planFields[1].Descriptor()
+	planDescBasePrice := planFields[2].Descriptor()
 	// plan.BasePriceValidator is a validator for the "base_price" field. It is called by the builders before save.
 	plan.BasePriceValidator = planDescBasePrice.Validators[0].(func(float64) error)
 	// planDescPeriod is the schema descriptor for period field.
-	planDescPeriod := planFields[2].Descriptor()
+	planDescPeriod := planFields[3].Descriptor()
 	// plan.PeriodValidator is a validator for the "period" field. It is called by the builders before save.
 	plan.PeriodValidator = func() func(string) error {
 		validators := planDescPeriod.Validators
@@ -115,7 +119,7 @@ func init() {
 		}
 	}()
 	// planDescIsActive is the schema descriptor for is_active field.
-	planDescIsActive := planFields[4].Descriptor()
+	planDescIsActive := planFields[5].Descriptor()
 	// plan.DefaultIsActive holds the default value on creation for the is_active field.
 	plan.DefaultIsActive = planDescIsActive.Default.(bool)
 	subscriptionMixin := schema.Subscription{}.Mixin()

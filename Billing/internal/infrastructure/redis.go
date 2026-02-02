@@ -1,8 +1,9 @@
 package infrastructure
 
 import (
-	"go-link/billing/global"
 	"go-link/common/pkg/database/redis"
+
+	"go-link/billing/global"
 )
 
 func SetupRedis() {

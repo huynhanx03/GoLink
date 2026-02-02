@@ -4,12 +4,8 @@ import "time"
 
 // CreateSubscriptionRequest represents request to create a subscription.
 type CreateSubscriptionRequest struct {
-	TenantID           int       `json:"tenant_id" validate:"required"`
-	PlanID             int       `json:"plan_id" validate:"required"`
-	Status             string    `json:"status" validate:"required,oneof=ACTIVE PENDING PAID PAST_DUE CANCELED"`
-	CurrentPeriodStart time.Time `json:"current_period_start" validate:"required"`
-	CurrentPeriodEnd   time.Time `json:"current_period_end" validate:"required,gtfield=CurrentPeriodStart"`
-	CancelAtPeriodEnd  bool      `json:"cancel_at_period_end"`
+	TenantID int `json:"tenant_id" validate:"required"`
+	PlanID   int `json:"plan_id" validate:"required"`
 }
 
 // UpdateSubscriptionRequest represents request to update a subscription.

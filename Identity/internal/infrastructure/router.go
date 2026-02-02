@@ -68,6 +68,7 @@ func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
 		{
 			auth.POST("/tenant-access", handler.Wrap(rg.AuthenticationHandler.AcquireToken))
 			auth.POST("/change-password", handler.Wrap(rg.AuthenticationHandler.ChangePassword))
+			auth.POST("/refresh", handler.Wrap(rg.AuthenticationHandler.RefreshToken))
 		}
 
 		// Tenants

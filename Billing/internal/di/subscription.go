@@ -20,11 +20,12 @@ type SubscriptionContainer struct {
 // InitSubscriptionDependencies initializes subscription dependencies.
 func InitSubscriptionDependencies(
 	client *dbEnt.EntClient,
+	planRepo ports.PlanRepository,
 	cache cache.CacheEngine,
 	log *logger.LoggerZap,
 ) SubscriptionContainer {
 	repository := db.NewSubscriptionRepository(client)
-	service := service.NewSubscriptionService(repository, cache, log)
+	service := service.NewSubscriptionService(repository, planRepo, cache, log)
 	handler := driverHttp.NewSubscriptionHandler(service)
 
 	return SubscriptionContainer{
