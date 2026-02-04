@@ -11,24 +11,26 @@ func ToPlanResponse(e *entity.Plan) *dto.PlanResponse {
 		return nil
 	}
 	return &dto.PlanResponse{
-		ID:        e.ID,
-		Name:      e.Name,
-		BasePrice: e.BasePrice,
-		Period:    e.Period,
-		Limits:    e.Limits,
-		IsActive:  e.IsActive,
-		CreatedAt: e.CreatedAt,
-		UpdatedAt: e.UpdatedAt,
+		ID:          e.ID,
+		Name:        e.Name,
+		Description: e.Description,
+		BasePrice:   e.BasePrice,
+		Period:      e.Period,
+		Features:    e.Features,
+		IsActive:    e.IsActive,
+		CreatedAt:   e.CreatedAt,
+		UpdatedAt:   e.UpdatedAt,
 	}
 }
 
 // ToPlanEntityFromCreate converts CreatePlanRequest to Plan entity.
 func ToPlanEntityFromCreate(req *dto.CreatePlanRequest) *entity.Plan {
 	return &entity.Plan{
-		Name:      req.Name,
-		BasePrice: req.BasePrice,
-		Period:    req.Period,
-		Limits:    req.Limits,
-		IsActive:  req.IsActive,
+		Name:        req.Name,
+		Description: req.Description,
+		BasePrice:   req.BasePrice,
+		Period:      req.Period,
+		Features:    req.Features,
+		IsActive:    req.IsActive,
 	}
 }

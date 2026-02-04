@@ -47,3 +47,11 @@ elasticsearch:
     - "${ELASTICSEARCH_ADDRESS_1}"
   username: ""
   password: ""
+
+logger:
+  log_level: debug
+  file_log_name: "./storages/logs/app.log"
+  max_backups: 30
+  max_age: 7
+  max_size: 1024
+  compress: true

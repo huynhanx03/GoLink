@@ -19,6 +19,7 @@ type Config struct {
 type Services struct {
 	IdentityService GRPCService `mapstructure:"identity_service"`
 	BillingService  GRPCService `mapstructure:"billing_service"`
+	PaymentService  GRPCService `mapstructure:"payment_service"`
 }
 
 type GRPCService struct {

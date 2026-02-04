@@ -109,7 +109,10 @@ func (r *ResourceRepository) Update(ctx context.Context, e *entity.Resource) err
 }
 
 func (r *ResourceRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Resource.DeleteOneID(id).Exec(ctx), resourceRepoName)
+	if err := r.client.DB(ctx).Resource.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, resourceRepoName)
+	}
+	return nil
 }
 
 func (r *ResourceRepository) Exists(ctx context.Context, id int) (bool, error) {

@@ -10,13 +10,14 @@ func ToPlanEntity(e *generate.Plan) *entity.Plan {
 		return nil
 	}
 	return &entity.Plan{
-		ID:        e.ID,
-		Name:      e.Name,
-		BasePrice: e.BasePrice,
-		Period:    e.Period,
-		Limits:    e.Limits,
-		IsActive:  e.IsActive,
-		CreatedAt: e.CreatedAt,
-		UpdatedAt: e.UpdatedAt,
+		ID:          e.ID,
+		Name:        e.Name,
+		Description: e.Description,
+		BasePrice:   e.BasePrice,
+		Period:      e.Period,
+		Features:    e.Features,
+		IsActive:    e.IsActive,
+		CreatedAt:   e.CreatedAt,
+		UpdatedAt:   e.UpdatedAt,
 	}
 }

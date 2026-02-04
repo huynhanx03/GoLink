@@ -6109,8 +6109,8 @@ type TenantMutation struct {
 	deleted_by            *int
 	adddeleted_by         *int
 	name                  *string
-	tier_id               *int
-	addtier_id            *int
+	plan_id               *int
+	addplan_id            *int
 	clearedFields         map[string]struct{}
 	tenant_members        map[int]struct{}
 	removedtenant_members map[int]struct{}
@@ -6448,60 +6448,60 @@ func (m *TenantMutation) ResetName() {
 	m.name = nil
 }
 
-// SetTierID sets the "tier_id" field.
-func (m *TenantMutation) SetTierID(i int) {
-	m.tier_id = &i
-	m.addtier_id = nil
+// SetPlanID sets the "plan_id" field.
+func (m *TenantMutation) SetPlanID(i int) {
+	m.plan_id = &i
+	m.addplan_id = nil
 }
 
-// TierID returns the value of the "tier_id" field in the mutation.
-func (m *TenantMutation) TierID() (r int, exists bool) {
-	v := m.tier_id
+// PlanID returns the value of the "plan_id" field in the mutation.
+func (m *TenantMutation) PlanID() (r int, exists bool) {
+	v := m.plan_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTierID returns the old "tier_id" field's value of the Tenant entity.
+// OldPlanID returns the old "plan_id" field's value of the Tenant entity.
 // If the Tenant object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TenantMutation) OldTierID(ctx context.Context) (v int, err error) {
+func (m *TenantMutation) OldPlanID(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTierID is only allowed on UpdateOne operations")
+		return v, errors.New("OldPlanID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTierID requires an ID field in the mutation")
+		return v, errors.New("OldPlanID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTierID: %w", err)
+		return v, fmt.Errorf("querying old value for OldPlanID: %w", err)
 	}
-	return oldValue.TierID, nil
+	return oldValue.PlanID, nil
 }
 
-// AddTierID adds i to the "tier_id" field.
-func (m *TenantMutation) AddTierID(i int) {
-	if m.addtier_id != nil {
-		*m.addtier_id += i
+// AddPlanID adds i to the "plan_id" field.
+func (m *TenantMutation) AddPlanID(i int) {
+	if m.addplan_id != nil {
+		*m.addplan_id += i
 	} else {
-		m.addtier_id = &i
+		m.addplan_id = &i
 	}
 }
 
-// AddedTierID returns the value that was added to the "tier_id" field in this mutation.
-func (m *TenantMutation) AddedTierID() (r int, exists bool) {
-	v := m.addtier_id
+// AddedPlanID returns the value that was added to the "plan_id" field in this mutation.
+func (m *TenantMutation) AddedPlanID() (r int, exists bool) {
+	v := m.addplan_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetTierID resets all changes to the "tier_id" field.
-func (m *TenantMutation) ResetTierID() {
-	m.tier_id = nil
-	m.addtier_id = nil
+// ResetPlanID resets all changes to the "plan_id" field.
+func (m *TenantMutation) ResetPlanID() {
+	m.plan_id = nil
+	m.addplan_id = nil
 }
 
 // AddTenantMemberIDs adds the "tenant_members" edge to the TenantMember entity by ids.
@@ -6662,8 +6662,8 @@ func (m *TenantMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, tenant.FieldName)
 	}
-	if m.tier_id != nil {
-		fields = append(fields, tenant.FieldTierID)
+	if m.plan_id != nil {
+		fields = append(fields, tenant.FieldPlanID)
 	}
 	return fields
 }
@@ -6683,8 +6683,8 @@ func (m *TenantMutation) Field(name string) (ent.Value, bool) {
 		return m.DeletedBy()
 	case tenant.FieldName:
 		return m.Name()
-	case tenant.FieldTierID:
-		return m.TierID()
+	case tenant.FieldPlanID:
+		return m.PlanID()
 	}
 	return nil, false
 }
@@ -6704,8 +6704,8 @@ func (m *TenantMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldDeletedBy(ctx)
 	case tenant.FieldName:
 		return m.OldName(ctx)
-	case tenant.FieldTierID:
-		return m.OldTierID(ctx)
+	case tenant.FieldPlanID:
+		return m.OldPlanID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Tenant field %s", name)
 }
@@ -6750,12 +6750,12 @@ func (m *TenantMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetName(v)
 		return nil
-	case tenant.FieldTierID:
+	case tenant.FieldPlanID:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTierID(v)
+		m.SetPlanID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Tenant field %s", name)
@@ -6768,8 +6768,8 @@ func (m *TenantMutation) AddedFields() []string {
 	if m.adddeleted_by != nil {
 		fields = append(fields, tenant.FieldDeletedBy)
 	}
-	if m.addtier_id != nil {
-		fields = append(fields, tenant.FieldTierID)
+	if m.addplan_id != nil {
+		fields = append(fields, tenant.FieldPlanID)
 	}
 	return fields
 }
@@ -6781,8 +6781,8 @@ func (m *TenantMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case tenant.FieldDeletedBy:
 		return m.AddedDeletedBy()
-	case tenant.FieldTierID:
-		return m.AddedTierID()
+	case tenant.FieldPlanID:
+		return m.AddedPlanID()
 	}
 	return nil, false
 }
@@ -6799,12 +6799,12 @@ func (m *TenantMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddDeletedBy(v)
 		return nil
-	case tenant.FieldTierID:
+	case tenant.FieldPlanID:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddTierID(v)
+		m.AddPlanID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Tenant numeric field %s", name)
@@ -6863,8 +6863,8 @@ func (m *TenantMutation) ResetField(name string) error {
 	case tenant.FieldName:
 		m.ResetName()
 		return nil
-	case tenant.FieldTierID:
-		m.ResetTierID()
+	case tenant.FieldPlanID:
+		m.ResetPlanID()
 		return nil
 	}
 	return fmt.Errorf("unknown Tenant field %s", name)

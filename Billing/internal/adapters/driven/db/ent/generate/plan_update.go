@@ -97,6 +97,26 @@ func (_u *PlanUpdate) SetNillableName(v *string) *PlanUpdate {
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *PlanUpdate) SetDescription(v string) *PlanUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *PlanUpdate) SetNillableDescription(v *string) *PlanUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *PlanUpdate) ClearDescription() *PlanUpdate {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
 // SetBasePrice sets the "base_price" field.
 func (_u *PlanUpdate) SetBasePrice(v float64) *PlanUpdate {
 	_u.mutation.ResetBasePrice()
@@ -132,15 +152,15 @@ func (_u *PlanUpdate) SetNillablePeriod(v *string) *PlanUpdate {
 	return _u
 }
 
-// SetLimits sets the "limits" field.
-func (_u *PlanUpdate) SetLimits(v map[string]interface{}) *PlanUpdate {
-	_u.mutation.SetLimits(v)
+// SetFeatures sets the "features" field.
+func (_u *PlanUpdate) SetFeatures(v map[string]interface{}) *PlanUpdate {
+	_u.mutation.SetFeatures(v)
 	return _u
 }
 
-// ClearLimits clears the value of the "limits" field.
-func (_u *PlanUpdate) ClearLimits() *PlanUpdate {
-	_u.mutation.ClearLimits()
+// ClearFeatures clears the value of the "features" field.
+func (_u *PlanUpdate) ClearFeatures() *PlanUpdate {
+	_u.mutation.ClearFeatures()
 	return _u
 }
 
@@ -248,6 +268,11 @@ func (_u *PlanUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`generate: validator failed for field "Plan.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Description(); ok {
+		if err := plan.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`generate: validator failed for field "Plan.description": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BasePrice(); ok {
 		if err := plan.BasePriceValidator(v); err != nil {
 			return &ValidationError{Name: "base_price", err: fmt.Errorf(`generate: validator failed for field "Plan.base_price": %w`, err)}
@@ -300,6 +325,12 @@ func (_u *PlanUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(plan.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(plan.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(plan.FieldDescription, field.TypeString)
+	}
 	if value, ok := _u.mutation.BasePrice(); ok {
 		_spec.SetField(plan.FieldBasePrice, field.TypeFloat64, value)
 	}
@@ -309,11 +340,11 @@ func (_u *PlanUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Period(); ok {
 		_spec.SetField(plan.FieldPeriod, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Limits(); ok {
-		_spec.SetField(plan.FieldLimits, field.TypeJSON, value)
+	if value, ok := _u.mutation.Features(); ok {
+		_spec.SetField(plan.FieldFeatures, field.TypeJSON, value)
 	}
-	if _u.mutation.LimitsCleared() {
-		_spec.ClearField(plan.FieldLimits, field.TypeJSON)
+	if _u.mutation.FeaturesCleared() {
+		_spec.ClearField(plan.FieldFeatures, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(plan.FieldIsActive, field.TypeBool, value)
@@ -452,6 +483,26 @@ func (_u *PlanUpdateOne) SetNillableName(v *string) *PlanUpdateOne {
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *PlanUpdateOne) SetDescription(v string) *PlanUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *PlanUpdateOne) SetNillableDescription(v *string) *PlanUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *PlanUpdateOne) ClearDescription() *PlanUpdateOne {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
 // SetBasePrice sets the "base_price" field.
 func (_u *PlanUpdateOne) SetBasePrice(v float64) *PlanUpdateOne {
 	_u.mutation.ResetBasePrice()
@@ -487,15 +538,15 @@ func (_u *PlanUpdateOne) SetNillablePeriod(v *string) *PlanUpdateOne {
 	return _u
 }
 
-// SetLimits sets the "limits" field.
-func (_u *PlanUpdateOne) SetLimits(v map[string]interface{}) *PlanUpdateOne {
-	_u.mutation.SetLimits(v)
+// SetFeatures sets the "features" field.
+func (_u *PlanUpdateOne) SetFeatures(v map[string]interface{}) *PlanUpdateOne {
+	_u.mutation.SetFeatures(v)
 	return _u
 }
 
-// ClearLimits clears the value of the "limits" field.
-func (_u *PlanUpdateOne) ClearLimits() *PlanUpdateOne {
-	_u.mutation.ClearLimits()
+// ClearFeatures clears the value of the "features" field.
+func (_u *PlanUpdateOne) ClearFeatures() *PlanUpdateOne {
+	_u.mutation.ClearFeatures()
 	return _u
 }
 
@@ -616,6 +667,11 @@ func (_u *PlanUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`generate: validator failed for field "Plan.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Description(); ok {
+		if err := plan.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`generate: validator failed for field "Plan.description": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BasePrice(); ok {
 		if err := plan.BasePriceValidator(v); err != nil {
 			return &ValidationError{Name: "base_price", err: fmt.Errorf(`generate: validator failed for field "Plan.base_price": %w`, err)}
@@ -685,6 +741,12 @@ func (_u *PlanUpdateOne) sqlSave(ctx context.Context) (_node *Plan, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(plan.FieldName, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(plan.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(plan.FieldDescription, field.TypeString)
+	}
 	if value, ok := _u.mutation.BasePrice(); ok {
 		_spec.SetField(plan.FieldBasePrice, field.TypeFloat64, value)
 	}
@@ -694,11 +756,11 @@ func (_u *PlanUpdateOne) sqlSave(ctx context.Context) (_node *Plan, err error) {
 	if value, ok := _u.mutation.Period(); ok {
 		_spec.SetField(plan.FieldPeriod, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Limits(); ok {
-		_spec.SetField(plan.FieldLimits, field.TypeJSON, value)
+	if value, ok := _u.mutation.Features(); ok {
+		_spec.SetField(plan.FieldFeatures, field.TypeJSON, value)
 	}
-	if _u.mutation.LimitsCleared() {
-		_spec.ClearField(plan.FieldLimits, field.TypeJSON)
+	if _u.mutation.FeaturesCleared() {
+		_spec.ClearField(plan.FieldFeatures, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(plan.FieldIsActive, field.TypeBool, value)

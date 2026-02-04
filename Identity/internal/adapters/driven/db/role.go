@@ -3,12 +3,14 @@ package db
 import (
 	"context"
 
+	"entgo.io/ent/dialect/sql"
+	"go.uber.org/zap"
+
 	commonEnt "go-link/common/pkg/database/ent"
 	d "go-link/common/pkg/dto"
+
+	"go-link/identity/global"
 	dbEnt "go-link/identity/internal/adapters/driven/db/ent"
-
-	"entgo.io/ent/dialect/sql"
-
 	"go-link/identity/internal/adapters/driven/db/ent/builder"
 	"go-link/identity/internal/adapters/driven/db/ent/generate"
 	"go-link/identity/internal/adapters/driven/db/ent/generate/role"
@@ -103,9 +105,11 @@ func (r *RoleRepository) GetByName(ctx context.Context, name string) (*entity.Ro
 	record, err := r.client.DB(ctx).Role.Query().
 		Where(role.Name(name)).
 		Only(ctx)
+	global.LoggerZap.Error("RoleRepository.GetByName", zap.String("name", name), zap.Any("err", err))
 	if err != nil {
 		return nil, commonEnt.MapEntError(err, roleRepoName)
 	}
+	global.LoggerZap.Info("RoleRepository.GetByName", zap.String("name", name), zap.Any("record", record))
 	return mapper.ToRoleEntity(record), nil
 }
 
@@ -146,7 +150,10 @@ func (r *RoleRepository) UpdateBulk(ctx context.Context, entities []*entity.Role
 }
 
 func (r *RoleRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Role.DeleteOneID(id).Exec(ctx), roleRepoName)
+	if err := r.client.DB(ctx).Role.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, roleRepoName)
+	}
+	return nil
 }
 
 func (r *RoleRepository) Exists(ctx context.Context, id int) (bool, error) {

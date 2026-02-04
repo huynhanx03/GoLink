@@ -85,6 +85,20 @@ func (_c *PlanCreate) SetName(v string) *PlanCreate {
 	return _c
 }
 
+// SetDescription sets the "description" field.
+func (_c *PlanCreate) SetDescription(v string) *PlanCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *PlanCreate) SetNillableDescription(v *string) *PlanCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
 // SetBasePrice sets the "base_price" field.
 func (_c *PlanCreate) SetBasePrice(v float64) *PlanCreate {
 	_c.mutation.SetBasePrice(v)
@@ -97,9 +111,9 @@ func (_c *PlanCreate) SetPeriod(v string) *PlanCreate {
 	return _c
 }
 
-// SetLimits sets the "limits" field.
-func (_c *PlanCreate) SetLimits(v map[string]interface{}) *PlanCreate {
-	_c.mutation.SetLimits(v)
+// SetFeatures sets the "features" field.
+func (_c *PlanCreate) SetFeatures(v map[string]interface{}) *PlanCreate {
+	_c.mutation.SetFeatures(v)
 	return _c
 }
 
@@ -206,6 +220,11 @@ func (_c *PlanCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`generate: validator failed for field "Plan.name": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.Description(); ok {
+		if err := plan.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`generate: validator failed for field "Plan.description": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.BasePrice(); !ok {
 		return &ValidationError{Name: "base_price", err: errors.New(`generate: missing required field "Plan.base_price"`)}
 	}
@@ -272,6 +291,10 @@ func (_c *PlanCreate) createSpec() (*Plan, *sqlgraph.CreateSpec) {
 		_spec.SetField(plan.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(plan.FieldDescription, field.TypeString, value)
+		_node.Description = value
+	}
 	if value, ok := _c.mutation.BasePrice(); ok {
 		_spec.SetField(plan.FieldBasePrice, field.TypeFloat64, value)
 		_node.BasePrice = value
@@ -280,9 +303,9 @@ func (_c *PlanCreate) createSpec() (*Plan, *sqlgraph.CreateSpec) {
 		_spec.SetField(plan.FieldPeriod, field.TypeString, value)
 		_node.Period = value
 	}
-	if value, ok := _c.mutation.Limits(); ok {
-		_spec.SetField(plan.FieldLimits, field.TypeJSON, value)
-		_node.Limits = value
+	if value, ok := _c.mutation.Features(); ok {
+		_spec.SetField(plan.FieldFeatures, field.TypeJSON, value)
+		_node.Features = value
 	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(plan.FieldIsActive, field.TypeBool, value)
@@ -422,6 +445,24 @@ func (u *PlanUpsert) UpdateName() *PlanUpsert {
 	return u
 }
 
+// SetDescription sets the "description" field.
+func (u *PlanUpsert) SetDescription(v string) *PlanUpsert {
+	u.Set(plan.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PlanUpsert) UpdateDescription() *PlanUpsert {
+	u.SetExcluded(plan.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PlanUpsert) ClearDescription() *PlanUpsert {
+	u.SetNull(plan.FieldDescription)
+	return u
+}
+
 // SetBasePrice sets the "base_price" field.
 func (u *PlanUpsert) SetBasePrice(v float64) *PlanUpsert {
 	u.Set(plan.FieldBasePrice, v)
@@ -452,21 +493,21 @@ func (u *PlanUpsert) UpdatePeriod() *PlanUpsert {
 	return u
 }
 
-// SetLimits sets the "limits" field.
-func (u *PlanUpsert) SetLimits(v map[string]interface{}) *PlanUpsert {
-	u.Set(plan.FieldLimits, v)
+// SetFeatures sets the "features" field.
+func (u *PlanUpsert) SetFeatures(v map[string]interface{}) *PlanUpsert {
+	u.Set(plan.FieldFeatures, v)
 	return u
 }
 
-// UpdateLimits sets the "limits" field to the value that was provided on create.
-func (u *PlanUpsert) UpdateLimits() *PlanUpsert {
-	u.SetExcluded(plan.FieldLimits)
+// UpdateFeatures sets the "features" field to the value that was provided on create.
+func (u *PlanUpsert) UpdateFeatures() *PlanUpsert {
+	u.SetExcluded(plan.FieldFeatures)
 	return u
 }
 
-// ClearLimits clears the value of the "limits" field.
-func (u *PlanUpsert) ClearLimits() *PlanUpsert {
-	u.SetNull(plan.FieldLimits)
+// ClearFeatures clears the value of the "features" field.
+func (u *PlanUpsert) ClearFeatures() *PlanUpsert {
+	u.SetNull(plan.FieldFeatures)
 	return u
 }
 
@@ -604,6 +645,27 @@ func (u *PlanUpsertOne) UpdateName() *PlanUpsertOne {
 	})
 }
 
+// SetDescription sets the "description" field.
+func (u *PlanUpsertOne) SetDescription(v string) *PlanUpsertOne {
+	return u.Update(func(s *PlanUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PlanUpsertOne) UpdateDescription() *PlanUpsertOne {
+	return u.Update(func(s *PlanUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PlanUpsertOne) ClearDescription() *PlanUpsertOne {
+	return u.Update(func(s *PlanUpsert) {
+		s.ClearDescription()
+	})
+}
+
 // SetBasePrice sets the "base_price" field.
 func (u *PlanUpsertOne) SetBasePrice(v float64) *PlanUpsertOne {
 	return u.Update(func(s *PlanUpsert) {
@@ -639,24 +701,24 @@ func (u *PlanUpsertOne) UpdatePeriod() *PlanUpsertOne {
 	})
 }
 
-// SetLimits sets the "limits" field.
-func (u *PlanUpsertOne) SetLimits(v map[string]interface{}) *PlanUpsertOne {
+// SetFeatures sets the "features" field.
+func (u *PlanUpsertOne) SetFeatures(v map[string]interface{}) *PlanUpsertOne {
 	return u.Update(func(s *PlanUpsert) {
-		s.SetLimits(v)
+		s.SetFeatures(v)
 	})
 }
 
-// UpdateLimits sets the "limits" field to the value that was provided on create.
-func (u *PlanUpsertOne) UpdateLimits() *PlanUpsertOne {
+// UpdateFeatures sets the "features" field to the value that was provided on create.
+func (u *PlanUpsertOne) UpdateFeatures() *PlanUpsertOne {
 	return u.Update(func(s *PlanUpsert) {
-		s.UpdateLimits()
+		s.UpdateFeatures()
 	})
 }
 
-// ClearLimits clears the value of the "limits" field.
-func (u *PlanUpsertOne) ClearLimits() *PlanUpsertOne {
+// ClearFeatures clears the value of the "features" field.
+func (u *PlanUpsertOne) ClearFeatures() *PlanUpsertOne {
 	return u.Update(func(s *PlanUpsert) {
-		s.ClearLimits()
+		s.ClearFeatures()
 	})
 }
 
@@ -967,6 +1029,27 @@ func (u *PlanUpsertBulk) UpdateName() *PlanUpsertBulk {
 	})
 }
 
+// SetDescription sets the "description" field.
+func (u *PlanUpsertBulk) SetDescription(v string) *PlanUpsertBulk {
+	return u.Update(func(s *PlanUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *PlanUpsertBulk) UpdateDescription() *PlanUpsertBulk {
+	return u.Update(func(s *PlanUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *PlanUpsertBulk) ClearDescription() *PlanUpsertBulk {
+	return u.Update(func(s *PlanUpsert) {
+		s.ClearDescription()
+	})
+}
+
 // SetBasePrice sets the "base_price" field.
 func (u *PlanUpsertBulk) SetBasePrice(v float64) *PlanUpsertBulk {
 	return u.Update(func(s *PlanUpsert) {
@@ -1002,24 +1085,24 @@ func (u *PlanUpsertBulk) UpdatePeriod() *PlanUpsertBulk {
 	})
 }
 
-// SetLimits sets the "limits" field.
-func (u *PlanUpsertBulk) SetLimits(v map[string]interface{}) *PlanUpsertBulk {
+// SetFeatures sets the "features" field.
+func (u *PlanUpsertBulk) SetFeatures(v map[string]interface{}) *PlanUpsertBulk {
 	return u.Update(func(s *PlanUpsert) {
-		s.SetLimits(v)
+		s.SetFeatures(v)
 	})
 }
 
-// UpdateLimits sets the "limits" field to the value that was provided on create.
-func (u *PlanUpsertBulk) UpdateLimits() *PlanUpsertBulk {
+// UpdateFeatures sets the "features" field to the value that was provided on create.
+func (u *PlanUpsertBulk) UpdateFeatures() *PlanUpsertBulk {
 	return u.Update(func(s *PlanUpsert) {
-		s.UpdateLimits()
+		s.UpdateFeatures()
 	})
 }
 
-// ClearLimits clears the value of the "limits" field.
-func (u *PlanUpsertBulk) ClearLimits() *PlanUpsertBulk {
+// ClearFeatures clears the value of the "features" field.
+func (u *PlanUpsertBulk) ClearFeatures() *PlanUpsertBulk {
 	return u.Update(func(s *PlanUpsert) {
-		s.ClearLimits()
+		s.ClearFeatures()
 	})
 }
 

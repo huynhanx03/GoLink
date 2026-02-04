@@ -26,11 +26,7 @@ func ToSubscriptionResponse(e *entity.Subscription) *dto.SubscriptionResponse {
 // ToSubscriptionEntityFromCreate converts CreateSubscriptionRequest to Subscription entity.
 func ToSubscriptionEntityFromCreate(req *dto.CreateSubscriptionRequest) *entity.Subscription {
 	return &entity.Subscription{
-		TenantID:           req.TenantID,
-		PlanID:             req.PlanID,
-		Status:             req.Status,
-		CurrentPeriodStart: req.CurrentPeriodStart,
-		CurrentPeriodEnd:   req.CurrentPeriodEnd,
-		CancelAtPeriodEnd:  req.CancelAtPeriodEnd,
+		TenantID: req.TenantID,
+		PlanID:   req.PlanID,
 	}
 }

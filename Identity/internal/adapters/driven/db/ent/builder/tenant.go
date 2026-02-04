@@ -12,12 +12,12 @@ import (
 func BuildCreateTenant(ctx context.Context, e *entity.Tenant) *generate.TenantCreate {
 	return global.EntClient.DB(ctx).Tenant.Create().
 		SetName(e.Name).
-		SetTierID(e.TierID)
+		SetPlanID(e.PlanID)
 }
 
 // BuildUpdateTenant builds the update mutation for Tenant entity.
 func BuildUpdateTenant(ctx context.Context, e *entity.Tenant) *generate.TenantUpdateOne {
 	return global.EntClient.DB(ctx).Tenant.UpdateOneID(e.ID).
 		SetName(e.Name).
-		SetTierID(e.TierID)
+		SetPlanID(e.PlanID)
 }

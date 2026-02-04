@@ -12,6 +12,5 @@ type CreateUserRequest struct {
 
 // CreateUserResponse represents the response after creating a user.
 type CreateUserResponse struct {
-	UserID   int64
-	TenantID int64
+	UserID int64
 }

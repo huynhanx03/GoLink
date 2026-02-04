@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS tenants (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    tier_id INTEGER,
+    plan_id INTEGER,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     deleted_at TIMESTAMP,

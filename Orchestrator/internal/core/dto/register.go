@@ -12,8 +12,5 @@ type RegisterRequest struct {
 
 // RegisterResponse represents the response for user registration.
 type RegisterResponse struct {
-	UserID   int64  `json:"user_id"`
-	TenantID int64  `json:"tenant_id"`
-	Success  bool   `json:"success"`
-	Message  string `json:"message"`
+	UserID int64 `json:"user_id"`
 }

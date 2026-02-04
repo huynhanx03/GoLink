@@ -9,7 +9,7 @@ func SetupDependencies() *Container {
 
 	invoiceContainer := InitInvoiceDependencies(client, global.Redis, log)
 	planContainer := InitPlanDependencies(client, global.Tinylfu, log)
-	subscriptionContainer := InitSubscriptionDependencies(client, global.Redis, log)
+	subscriptionContainer := InitSubscriptionDependencies(client, planContainer.Repository, global.Redis, log)
 
 	container := &Container{
 		InvoiceContainer:      invoiceContainer,

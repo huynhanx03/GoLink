@@ -25,8 +25,8 @@ const (
 	FieldDeletedBy = "deleted_by"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldTierID holds the string denoting the tier_id field in the database.
-	FieldTierID = "tier_id"
+	// FieldPlanID holds the string denoting the plan_id field in the database.
+	FieldPlanID = "plan_id"
 	// EdgeTenantMembers holds the string denoting the tenant_members edge name in mutations.
 	EdgeTenantMembers = "tenant_members"
 	// EdgeDomains holds the string denoting the domains edge name in mutations.
@@ -57,7 +57,7 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldDeletedBy,
 	FieldName,
-	FieldTierID,
+	FieldPlanID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -86,8 +86,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultTierID holds the default value on creation for the "tier_id" field.
-	DefaultTierID int
+	// DefaultPlanID holds the default value on creation for the "plan_id" field.
+	DefaultPlanID int
 )
 
 // OrderOption defines the ordering options for the Tenant queries.
@@ -123,9 +123,9 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByTierID orders the results by the tier_id field.
-func ByTierID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTierID, opts...).ToFunc()
+// ByPlanID orders the results by the plan_id field.
+func ByPlanID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPlanID, opts...).ToFunc()
 }
 
 // ByTenantMembersCount orders the results by tenant_members count.

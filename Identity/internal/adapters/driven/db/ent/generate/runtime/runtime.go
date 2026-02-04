@@ -234,10 +234,10 @@ func init() {
 	tenantDescName := tenantFields[0].Descriptor()
 	// tenant.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	tenant.NameValidator = tenantDescName.Validators[0].(func(string) error)
-	// tenantDescTierID is the schema descriptor for tier_id field.
-	tenantDescTierID := tenantFields[1].Descriptor()
-	// tenant.DefaultTierID holds the default value on creation for the tier_id field.
-	tenant.DefaultTierID = tenantDescTierID.Default.(int)
+	// tenantDescPlanID is the schema descriptor for plan_id field.
+	tenantDescPlanID := tenantFields[1].Descriptor()
+	// tenant.DefaultPlanID holds the default value on creation for the plan_id field.
+	tenant.DefaultPlanID = tenantDescPlanID.Default.(int)
 	tenantmemberMixin := schema.TenantMember{}.Mixin()
 	tenantmemberMixinHooks1 := tenantmemberMixin[1].Hooks()
 	tenantmember.Hooks[0] = tenantmemberMixinHooks1[0]

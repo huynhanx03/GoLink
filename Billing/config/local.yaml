@@ -33,3 +33,11 @@ redis:
 jwt:
   secret: "${JWT_SECRET}"
   public_key_path: "./certs/public_key.pem"
+
+logger:
+  log_level: debug
+  file_log_name: "./storages/logs/app.log"
+  max_backups: 30
+  max_age: 7
+  max_size: 1024
+  compress: true

@@ -10,6 +10,7 @@ import (
 // TenantRepository defines the tenant data access interface.
 type TenantRepository interface {
 	Get(ctx context.Context, id int) (*entity.Tenant, error)
+	GetByIDs(ctx context.Context, ids []int) ([]*entity.Tenant, error)
 	Create(ctx context.Context, e *entity.Tenant) error
 	Update(ctx context.Context, e *entity.Tenant) error
 	Delete(ctx context.Context, id int) error
@@ -19,6 +20,7 @@ type TenantRepository interface {
 // TenantService defines the tenant business logic interface.
 type TenantService interface {
 	Get(ctx context.Context, id int) (*dto.TenantResponse, error)
+	GetByUserID(ctx context.Context, userID int) ([]*dto.TenantResponse, error)
 	Create(ctx context.Context, req *dto.CreateTenantRequest) (*dto.TenantResponse, error)
 	Update(ctx context.Context, id int, req *dto.UpdateTenantRequest) (*dto.TenantResponse, error)
 	Delete(ctx context.Context, id int) error

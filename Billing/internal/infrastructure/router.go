@@ -41,31 +41,26 @@ func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
 		// Admin Routes
 		admin := protected.Group("", middlewares.RequireAdmin())
 		{
-			// Plans (Admin)
+			// Plans
 			admin.POST("/plans", handler.Wrap(rg.PlanHandler.Create))
 			admin.PUT("/plans/:id", handler.Wrap(rg.PlanHandler.Update))
 			admin.DELETE("/plans/:id", handler.Wrap(rg.PlanHandler.Delete))
 			admin.GET("/plans", handler.Wrap(rg.PlanHandler.FindAll))
 			admin.GET("/plans/:id", handler.Wrap(rg.PlanHandler.Get))
 
-			// Invoices (Admin)
-			admin.GET("/invoices/:id", handler.Wrap(rg.InvoiceHandler.Get))    // Get by ID
-			admin.POST("/invoices", handler.Wrap(rg.InvoiceHandler.Create))    // Create
-			admin.PUT("/invoices/:id", handler.Wrap(rg.InvoiceHandler.Update)) // Update
+			// Invoices
+			admin.GET("/invoices/:id", handler.Wrap(rg.InvoiceHandler.Get))
+			admin.POST("/invoices", handler.Wrap(rg.InvoiceHandler.Create))
+			admin.PUT("/invoices/:id", handler.Wrap(rg.InvoiceHandler.Update))
 			admin.DELETE("/invoices/:id", handler.Wrap(rg.InvoiceHandler.Delete))
 
-			// Subscriptions (Admin)
+			// Subscriptions
 			admin.GET("/subscriptions/:id", handler.Wrap(rg.SubscriptionHandler.Get))
 			admin.DELETE("/subscriptions/:id", handler.Wrap(rg.SubscriptionHandler.Delete))
 		}
 
-		// User Routes (Permission Based)
-		// Invoices: FindMine (User Permission - Read)
-		// "invoices thì viết thêm 2 api find theo user id ... dùng quyền"
 		protected.GET("/invoices/mine", middlewares.RequirePermission(permissions.ResourceKeyInvoice, permissions.PermissionScopeRead), handler.Wrap(rg.InvoiceHandler.FindMine))
 
-		// Subscriptions: Create/Update (User Permission)
-		// "post, put là quyền"
 		protected.POST("/subscriptions", middlewares.RequirePermission(permissions.ResourceKeySubscription, permissions.PermissionScopeCreate), handler.Wrap(rg.SubscriptionHandler.Create))
 		protected.PUT("/subscriptions/:id", middlewares.RequirePermission(permissions.ResourceKeySubscription, permissions.PermissionScopeUpdate), handler.Wrap(rg.SubscriptionHandler.Update))
 	}
@@ -88,6 +83,7 @@ func NewEngine(routerGroup *RouterGroup) *gin.Engine {
 	r := gin.New()
 
 	// Middlewares
+	r.Use(middlewares.RecoveryMiddleware)
 	r.Use(middlewares.CORSMiddleware)
 
 	r.GET("/ping", Ping)
