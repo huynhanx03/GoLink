@@ -10,6 +10,6 @@ func Run() error {
 	SetupLogger()
 	di.SetupDependencies()
 
-	server := NewHTTPServer()
-	return server.Run()
+	http := NewHTTPServer()
+	return http.Run()
 }

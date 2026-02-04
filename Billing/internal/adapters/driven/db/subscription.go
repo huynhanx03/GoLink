@@ -64,5 +64,8 @@ func (r *SubscriptionRepository) Update(ctx context.Context, e *entity.Subscript
 }
 
 func (r *SubscriptionRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Subscription.DeleteOneID(id).Exec(ctx), subscriptionRepoName)
+	if err := r.client.DB(ctx).Subscription.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, subscriptionRepoName)
+	}
+	return nil
 }

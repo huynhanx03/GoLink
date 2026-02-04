@@ -53,16 +53,10 @@ func (s *Saga) Execute(ctx context.Context) (*dto.UpgradeSubscriptionResponse, e
 	coordinator := saga.NewCoordinator(s.BuildSteps()...)
 
 	if err := coordinator.Execute(ctx); err != nil {
-		return &dto.UpgradeSubscriptionResponse{
-			Success:   false,
-			Message:   err.Error(),
-			InvoiceID: s.state.InvoiceID, // May be available if failed later
-		}, nil
+		return nil, err
 	}
 
 	return &dto.UpgradeSubscriptionResponse{
-		Success:   true,
-		Message:   "Subscription upgraded successfully",
 		InvoiceID: s.state.InvoiceID,
 	}, nil
 }

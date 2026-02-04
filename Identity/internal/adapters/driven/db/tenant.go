@@ -85,6 +85,21 @@ func (r *TenantRepository) Get(ctx context.Context, id int) (*entity.Tenant, err
 	return mapper.ToTenantEntity(record), nil
 }
 
+func (r *TenantRepository) GetByIDs(ctx context.Context, ids []int) ([]*entity.Tenant, error) {
+	records, err := r.client.DB(ctx).Tenant.Query().
+		Where(tenant.IDIn(ids...)).
+		All(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, tenantRepoName)
+	}
+
+	entities := make([]*entity.Tenant, len(records))
+	for i, record := range records {
+		entities[i] = mapper.ToTenantEntity(record)
+	}
+	return entities, nil
+}
+
 func (r *TenantRepository) Create(ctx context.Context, e *entity.Tenant) error {
 	create := builder.BuildCreateTenant(ctx, e)
 	record, err := create.Save(ctx)
@@ -109,7 +124,10 @@ func (r *TenantRepository) Update(ctx context.Context, e *entity.Tenant) error {
 }
 
 func (r *TenantRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Tenant.DeleteOneID(id).Exec(ctx), tenantRepoName)
+	if err := r.client.DB(ctx).Tenant.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, tenantRepoName)
+	}
+	return nil
 }
 
 func (r *TenantRepository) Exists(ctx context.Context, id int) (bool, error) {

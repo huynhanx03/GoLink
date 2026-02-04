@@ -99,7 +99,10 @@ func (r *FederatedIdentityRepository) Create(ctx context.Context, e *entity.Fede
 }
 
 func (r *FederatedIdentityRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).FederatedIdentity.DeleteOneID(id).Exec(ctx), fedIdentityRepoName)
+	if err := r.client.DB(ctx).FederatedIdentity.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, fedIdentityRepoName)
+	}
+	return nil
 }
 
 func (r *FederatedIdentityRepository) Exists(ctx context.Context, id int) (bool, error) {

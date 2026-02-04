@@ -28,6 +28,9 @@ const (
 	// Not found errors (44000-44999)
 	CodeNotFound = 44000 // Resource not found
 
+	// Rate limiting (42900-42999)
+	CodeTooManyRequests = 42900 // Too many requests
+
 	// Conflict errors (49000-49999)
 	CodeConflict = 49000 // Conflict
 

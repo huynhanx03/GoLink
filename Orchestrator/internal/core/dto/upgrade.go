@@ -9,7 +9,5 @@ type UpgradeSubscriptionRequest struct {
 
 // UpgradeSubscriptionResponse represents the response after upgrading a subscription.
 type UpgradeSubscriptionResponse struct {
-	Success   bool   `json:"success"`
-	Message   string `json:"message"`
-	InvoiceID int64  `json:"invoice_id"`
+	InvoiceID int64 `json:"invoice_id"`
 }

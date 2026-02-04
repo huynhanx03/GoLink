@@ -10,8 +10,10 @@ import (
 // V1Routes registers the identity service routes
 func V1Routes(
 	userService ports.UserService,
+	authService ports.AuthenticationService,
+	tenantService ports.TenantService,
 ) func(srv *grpc.Server) {
 	return func(srv *grpc.Server) {
-		identityv1.RegisterIdentityServiceServer(srv, NewIdentityServer(userService))
+		identityv1.RegisterIdentityServiceServer(srv, NewIdentityServer(userService, authService, tenantService))
 	}
 }

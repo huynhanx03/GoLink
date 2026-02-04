@@ -54,7 +54,10 @@ func (r *PlanRepository) Update(ctx context.Context, e *entity.Plan) error {
 }
 
 func (r *PlanRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Plan.DeleteOneID(id).Exec(ctx), planRepoName)
+	if err := r.client.DB(ctx).Plan.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, planRepoName)
+	}
+	return nil
 }
 
 func (r *PlanRepository) FindAll(ctx context.Context) ([]*entity.Plan, error) {

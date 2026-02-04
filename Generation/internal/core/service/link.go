@@ -185,7 +185,7 @@ func (s *linkService) getOwnerLevel(ctx context.Context, userID int, tenantID in
 	}
 
 	if s.identityClient == nil {
-		return 0, fmt.Errorf("identity client not available")
+		return 0, apperr.NewError(serviceName, response.CodeInternalError, "identity client not available", http.StatusInternalServerError, nil)
 	}
 
 	resp, err := s.identityClient.GetUserRole(ctx, &identityv1.GetUserRoleRequest{

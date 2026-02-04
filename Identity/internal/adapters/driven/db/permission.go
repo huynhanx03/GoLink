@@ -109,7 +109,10 @@ func (r *PermissionRepository) Update(ctx context.Context, e *entity.Permission)
 }
 
 func (r *PermissionRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Permission.DeleteOneID(id).Exec(ctx), permissionRepoName)
+	if err := r.client.DB(ctx).Permission.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, permissionRepoName)
+	}
+	return nil
 }
 
 func (r *PermissionRepository) Exists(ctx context.Context, id int) (bool, error) {

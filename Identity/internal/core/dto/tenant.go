@@ -28,3 +28,6 @@ type TenantResponse struct {
 	Name   string `json:"name"`
 	PlanID int    `json:"plan_id"`
 }
+
+// GetMyTenantsRequest represents request to get current user's tenants.
+type GetMyTenantsRequest struct{}

@@ -26,6 +26,10 @@ run-identity:
 run-billing:
 	cd Billing && go run cmd/server/main.go
 
+.PHONY: run-orchestrator
+run-orchestrator:
+	cd Orchestrator && go run cmd/server/main.go
+
 .PHONY: gen-ent-identity
 gen-ent-identity:
 	go generate ./Identity/...
@@ -70,7 +74,6 @@ init-cdc:
 init-all:
 	make init-db
 	make init-cdc
-	make gen-ent
 
 .PHONY: install-tools
 install-tools:
@@ -81,6 +84,6 @@ install-tools:
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 
-.PHONY: gen
+.PHONY: gen-proto
 gen:
 	cd proto && docker-compose up --build

@@ -54,7 +54,10 @@ func (r *InvoiceRepository) Update(ctx context.Context, e *entity.Invoice) error
 }
 
 func (r *InvoiceRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Invoice.DeleteOneID(id).Exec(ctx), invoiceRepoName)
+	if err := r.client.DB(ctx).Invoice.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, invoiceRepoName)
+	}
+	return nil
 }
 
 func (r *InvoiceRepository) FindByTenantID(ctx context.Context, tenantID int) ([]*entity.Invoice, error) {

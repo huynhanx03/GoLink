@@ -122,7 +122,10 @@ func (r *CredentialRepository) Update(ctx context.Context, e *entity.Credential)
 }
 
 func (r *CredentialRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Credential.DeleteOneID(id).Exec(ctx), credentialRepoName)
+	if err := r.client.DB(ctx).Credential.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, credentialRepoName)
+	}
+	return nil
 }
 
 func (r *CredentialRepository) Exists(ctx context.Context, id int) (bool, error) {

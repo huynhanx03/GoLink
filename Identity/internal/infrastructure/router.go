@@ -80,6 +80,7 @@ func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
 				admin.DELETE("/:id", handler.Wrap(rg.TenantHandler.Delete))
 			}
 
+			tenants.GET("/my", handler.Wrap(rg.TenantHandler.GetMyTenants))
 			tenants.GET("/:id", middlewares.RequirePermission(permissions.ResourceKeyTenant, permissions.PermissionScopeRead), handler.Wrap(rg.TenantHandler.Get))
 			tenants.PUT("/:id", middlewares.RequirePermission(permissions.ResourceKeyTenant, permissions.PermissionScopeUpdate), handler.Wrap(rg.TenantHandler.Update))
 		}
@@ -166,6 +167,7 @@ func NewEngine(routerGroup *RouterGroup) *gin.Engine {
 	r := gin.New()
 
 	// Middlewares
+	r.Use(middlewares.RecoveryMiddleware)
 	r.Use(middlewares.CORSMiddleware)
 
 	r.GET("/ping", Ping)

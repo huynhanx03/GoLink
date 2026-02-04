@@ -5,6 +5,7 @@ import (
 
 	identityv1 "go-link/common/gen/go/identity/v1"
 	"go-link/common/pkg/grpc"
+	"go-link/common/pkg/grpc/interceptors"
 	"go-link/common/pkg/settings"
 	"go-link/orchestrator/internal/core/dto"
 	"go-link/orchestrator/internal/ports"
@@ -34,11 +35,10 @@ func (a *identityClientAdapter) CreateUser(ctx context.Context, req dto.CreateUs
 		Birthday:  req.Birthday,
 	})
 	if err != nil {
-		return dto.CreateUserResponse{}, err
+		return dto.CreateUserResponse{}, interceptors.FromGRPCStatus(err)
 	}
 	return dto.CreateUserResponse{
-		UserID:   resp.UserId,
-		TenantID: resp.TenantId,
+		UserID: resp.UserId,
 	}, nil
 }
 
@@ -46,7 +46,7 @@ func (a *identityClientAdapter) DeleteUser(ctx context.Context, userID int64) er
 	_, err := a.client.DeleteUser(ctx, &identityv1.DeleteUserRequest{
 		UserId: userID,
 	})
-	return err
+	return interceptors.FromGRPCStatus(err)
 }
 
 func (a *identityClientAdapter) UpdateTenantPlan(ctx context.Context, tenantID int64, planID int64) error {
@@ -54,5 +54,5 @@ func (a *identityClientAdapter) UpdateTenantPlan(ctx context.Context, tenantID i
 		TenantId: tenantID,
 		PlanId:   planID,
 	})
-	return err
+	return interceptors.FromGRPCStatus(err)
 }

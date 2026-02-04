@@ -83,6 +83,7 @@ func NewEngine(routerGroup *RouterGroup) *gin.Engine {
 	r := gin.New()
 
 	// Middlewares
+	r.Use(middlewares.RecoveryMiddleware)
 	r.Use(middlewares.CORSMiddleware)
 
 	r.GET("/ping", Ping)

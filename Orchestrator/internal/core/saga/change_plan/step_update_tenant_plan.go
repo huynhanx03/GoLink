@@ -2,7 +2,6 @@ package change_plan
 
 import (
 	"context"
-	"fmt"
 
 	"go-link/orchestrator/internal/ports"
 )
@@ -24,12 +23,7 @@ func (s *StepUpdateTenantPlan) Name() string {
 }
 
 func (s *StepUpdateTenantPlan) Execute(ctx context.Context) error {
-	err := s.identityClient.UpdateTenantPlan(ctx, s.State.TenantID, int64(s.State.NewPlanID))
-	if err != nil {
-		return fmt.Errorf("failed to update tenant plan: %w", err)
-	}
-
-	return nil
+	return s.identityClient.UpdateTenantPlan(ctx, s.State.TenantID, int64(s.State.NewPlanID))
 }
 
 func (s *StepUpdateTenantPlan) Compensate(ctx context.Context) error {

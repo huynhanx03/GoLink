@@ -131,7 +131,10 @@ func (r *AttributeDefinitionRepository) Update(ctx context.Context, e *entity.At
 }
 
 func (r *AttributeDefinitionRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).AttributeDefinition.DeleteOneID(id).Exec(ctx), attrDefRepoName)
+	if err := r.client.DB(ctx).AttributeDefinition.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, attrDefRepoName)
+	}
+	return nil
 }
 
 func (r *AttributeDefinitionRepository) Exists(ctx context.Context, id int) (bool, error) {

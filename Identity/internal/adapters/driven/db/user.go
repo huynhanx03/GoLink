@@ -124,10 +124,16 @@ func (r *UserRepository) Delete(ctx context.Context, id int) error {
 
 func (r *UserRepository) Exists(ctx context.Context, id int) (bool, error) {
 	exists, err := r.client.DB(ctx).User.Query().Where(user.ID(id)).Exist(ctx)
-	return exists, commonEnt.MapEntError(err, userRepoName)
+	if err != nil {
+		return exists, commonEnt.MapEntError(err, userRepoName)
+	}
+	return exists, nil
 }
 
 func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) (bool, error) {
 	exists, err := r.client.DB(ctx).User.Query().Where(user.Username(username)).Exist(ctx)
-	return exists, commonEnt.MapEntError(err, userRepoName)
+	if err != nil {
+		return exists, commonEnt.MapEntError(err, userRepoName)
+	}
+	return exists, nil
 }

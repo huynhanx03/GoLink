@@ -264,7 +264,6 @@ func (x *CreateUserRequest) GetBirthday() string {
 type CreateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	TenantId      int64                  `protobuf:"varint,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -302,13 +301,6 @@ func (*CreateUserResponse) Descriptor() ([]byte, []int) {
 func (x *CreateUserResponse) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
-	}
-	return 0
-}
-
-func (x *CreateUserResponse) GetTenantId() int64 {
-	if x != nil {
-		return x.TenantId
 	}
 	return 0
 }
@@ -518,10 +510,9 @@ const file_identity_v1_service_proto_rawDesc = "" +
 	"first_name\x18\x03 \x01(\tR\tfirstName\x12\x1b\n" +
 	"\tlast_name\x18\x04 \x01(\tR\blastName\x12\x16\n" +
 	"\x06gender\x18\x05 \x01(\x05R\x06gender\x12\x1a\n" +
-	"\bbirthday\x18\x06 \x01(\tR\bbirthday\"J\n" +
+	"\bbirthday\x18\x06 \x01(\tR\bbirthday\"-\n" +
 	"\x12CreateUserResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1b\n" +
-	"\ttenant_id\x18\x02 \x01(\x03R\btenantId\",\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\",\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\".\n" +
 	"\x12DeleteUserResponse\x12\x18\n" +

@@ -2,9 +2,11 @@ package change_plan
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 	"strings"
 
+	"go-link/common/pkg/common/apperr"
+	"go-link/common/pkg/common/http/response"
 	"go-link/orchestrator/internal/constant"
 	"go-link/orchestrator/internal/core/dto"
 	"go-link/orchestrator/internal/ports"
@@ -31,7 +33,13 @@ func (s *StepProcessPayment) Execute(ctx context.Context) error {
 	}
 
 	if strings.ToLower(res.Status) != constant.PaymentStatusSuccess {
-		return fmt.Errorf("payment failed: %s", res.ErrorMessage)
+		return apperr.NewError(
+			"StepProcessPayment",
+			response.CodeInternalError,
+			res.ErrorMessage,
+			http.StatusPaymentRequired,
+			nil,
+		)
 	}
 
 	s.State.PaymentID = res.PaymentID

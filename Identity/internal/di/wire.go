@@ -12,7 +12,7 @@ func SetupDependencies() *Container {
 	roleContainer := InitRoleDependencies(client, cacheContainer.Service)
 	attrValueContainer := InitUserAttributeValueDependencies(client)
 	attrDefinitionContainer := InitAttributeDefinitionDependencies(client, global.Tinylfu)
-	tenantContainer := InitTenantDependencies(client, global.Tinylfu)
+	tenantContainer := InitTenantDependencies(client, tenantMemberContainer.Repository, global.Tinylfu)
 	permissionContainer := InitPermissionDependencies(client, cacheContainer.Service)
 	resourceContainer := InitResourceDependencies(client, cacheContainer.Service)
 	domainContainer := InitDomainDependencies(client, global.Tinylfu)
