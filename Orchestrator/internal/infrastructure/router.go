@@ -28,10 +28,14 @@ func NewRouterGroup(
 
 // registerRoutes registers all routes.
 func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
-	// Public Routes
 	public := r.Group("/auth")
 	{
 		public.POST("/register", handler.Wrap(rg.OrchestratorHandler.Register))
+	}
+
+	billing := r.Group("/billing")
+	{
+		billing.PUT("/update-subscription", handler.Wrap(rg.OrchestratorHandler.UpgradeSubscription))
 	}
 }
 
@@ -52,6 +56,7 @@ func NewEngine(routerGroup *RouterGroup) *gin.Engine {
 	r := gin.New()
 
 	// Middlewares
+	r.Use(middlewares.RecoveryMiddleware)
 	r.Use(middlewares.CORSMiddleware)
 
 	r.GET("/ping", Ping)

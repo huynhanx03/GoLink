@@ -6,9 +6,10 @@ CREATE DATABASE billing;
 CREATE TABLE IF NOT EXISTS plans (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    description VARCHAR(200) NULL,
     base_price DOUBLE PRECISION NOT NULL,
     period VARCHAR(20) NOT NULL,
-    limits JSONB NULL,
+    features JSONB NULL,
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -46,10 +47,10 @@ CREATE TABLE IF NOT EXISTS invoices (
 
 -- insert data
 
-INSERT INTO plans (id, name, base_price, period, limits, is_active, created_at, updated_at, deleted_at, deleted_by) VALUES
-(1, 'Free', 0.00, 'month', '{"max_links": 10}', true, NOW(), NOW(), NULL, NULL),
-(2, 'Pro', 9.99, 'month', '{"max_links": 100}', true, NOW(), NOW(), NULL, NULL),
-(3, 'Enterprise', 49.99, 'month', '{"max_links": 1000}', true, NOW(), NOW(), NULL, NULL)
+INSERT INTO plans (id, name, description, base_price, period, features, is_active, created_at, updated_at, deleted_at, deleted_by) VALUES
+(1, 'Free', 'Perfect for getting started', 0.00, 'forever', '{"max_links": 10, "ttl": 604800}', true, NOW(), NOW(), NULL, NULL),
+(2, 'Pro', 'For power users and creators', 9.99, 'month', '{"max_links": 100, "ttl": 2592000}', true, NOW(), NOW(), NULL, NULL),
+(3, 'Enterprise', 'For large teams and businesses', 99.99, 'month', '{"max_links": 1000, "ttl": 31536000, "customer_domain": true}', true, NOW(), NOW(), NULL, NULL)
 ON CONFLICT (id) DO NOTHING;
 
 -- reset sequences

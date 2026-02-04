@@ -1,0 +1,10 @@
+// Shared Components - Centralized exports
+export { Navbar } from "./navbar";
+export { Footer } from "./footer";
+export { UrlShortenerWidget } from "./url-shortener-widget";
+export { DashboardSidebar } from "./dashboard-sidebar";
+export { DashboardHeader } from "./dashboard-header";
+export { AdminSidebar } from "./admin-sidebar";
+export { AdminHeader } from "./admin-header";
+export { PlanCard } from "./plan-card";
+export { PricingSection } from "./pricing-section";

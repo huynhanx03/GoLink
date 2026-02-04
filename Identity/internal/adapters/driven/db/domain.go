@@ -118,7 +118,10 @@ func (r *DomainRepository) Update(ctx context.Context, e *entity.Domain) error {
 
 // Delete removes a domain by ID.
 func (r *DomainRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).Domain.DeleteOneID(id).Exec(ctx), domainRepoName)
+	if err := r.client.DB(ctx).Domain.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, domainRepoName)
+	}
+	return nil
 }
 
 // Exists checks if a domain exists by ID.

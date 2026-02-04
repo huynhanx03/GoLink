@@ -27,8 +27,8 @@ type Tenant struct {
 	DeletedBy *int `json:"deleted_by,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// TierID holds the value of the "tier_id" field.
-	TierID int `json:"tier_id,omitempty"`
+	// PlanID holds the value of the "plan_id" field.
+	PlanID int `json:"plan_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TenantQuery when eager-loading is set.
 	Edges        TenantEdges `json:"edges"`
@@ -69,7 +69,7 @@ func (*Tenant) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case tenant.FieldID, tenant.FieldDeletedBy, tenant.FieldTierID:
+		case tenant.FieldID, tenant.FieldDeletedBy, tenant.FieldPlanID:
 			values[i] = new(sql.NullInt64)
 		case tenant.FieldName:
 			values[i] = new(sql.NullString)
@@ -128,11 +128,11 @@ func (_m *Tenant) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Name = value.String
 			}
-		case tenant.FieldTierID:
+		case tenant.FieldPlanID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field tier_id", values[i])
+				return fmt.Errorf("unexpected type %T for field plan_id", values[i])
 			} else if value.Valid {
-				_m.TierID = int(value.Int64)
+				_m.PlanID = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -199,8 +199,8 @@ func (_m *Tenant) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
-	builder.WriteString("tier_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TierID))
+	builder.WriteString("plan_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PlanID))
 	builder.WriteByte(')')
 	return builder.String()
 }

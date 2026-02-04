@@ -2,7 +2,6 @@ package saga
 
 import (
 	"context"
-	"fmt"
 	"go-link/orchestrator/global"
 
 	"go.uber.org/zap"
@@ -27,9 +26,9 @@ func (c *Coordinator) Execute(ctx context.Context) error {
 	for _, step := range c.steps {
 		global.LoggerZap.Info("Executing Saga Step", zap.String("step", step.Name()))
 		if err := step.Execute(ctx); err != nil {
-			global.LoggerZap.Error("Saga Step Failed", zap.String("step", step.Name()), zap.Error(err))
+			global.LoggerZap.Warn("Saga Step Failed", zap.String("step", step.Name()), zap.Error(err))
 			c.compensate(ctx, executedSteps)
-			return fmt.Errorf("step %s failed: %w", step.Name(), err)
+			return err
 		}
 		executedSteps = append(executedSteps, step)
 	}

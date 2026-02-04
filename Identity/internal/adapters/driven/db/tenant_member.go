@@ -109,7 +109,10 @@ func (r *TenantMemberRepository) Update(ctx context.Context, e *entity.TenantMem
 }
 
 func (r *TenantMemberRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).TenantMember.DeleteOneID(id).Exec(ctx), tenantMemberRepoName)
+	if err := r.client.DB(ctx).TenantMember.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, tenantMemberRepoName)
+	}
+	return nil
 }
 
 func (r *TenantMemberRepository) Exists(ctx context.Context, id int) (bool, error) {

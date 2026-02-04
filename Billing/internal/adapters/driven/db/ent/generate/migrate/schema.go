@@ -56,9 +56,10 @@ var (
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_by", Type: field.TypeInt, Nullable: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "base_price", Type: field.TypeFloat64},
 		{Name: "period", Type: field.TypeString, Size: 20},
-		{Name: "limits", Type: field.TypeJSON, Nullable: true},
+		{Name: "features", Type: field.TypeJSON, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 	}
 	// PlansTable holds the schema information for the "plans" table.

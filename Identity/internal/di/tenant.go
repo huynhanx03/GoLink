@@ -19,10 +19,11 @@ type TenantContainer struct {
 // InitTenantDependencies initializes tenant dependencies.
 func InitTenantDependencies(
 	client *dbEnt.EntClient,
+	tenantMemberRepo ports.TenantMemberRepository,
 	cache cache.LocalCache[string, any],
 ) TenantContainer {
 	repository := db.NewTenantRepository(client)
-	service := service.NewTenantService(repository, cache)
+	service := service.NewTenantService(repository, tenantMemberRepo, cache)
 	handler := driverHttp.NewTenantHandler(service)
 
 	return TenantContainer{

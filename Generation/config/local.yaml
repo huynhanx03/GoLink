@@ -43,3 +43,11 @@ services:
   billing_service:
     host: "localhost"
     port: 2203
+
+logger:
+  log_level: debug
+  file_log_name: "./storages/logs/app.log"
+  max_backups: 30
+  max_age: 7
+  max_size: 1024
+  compress: true

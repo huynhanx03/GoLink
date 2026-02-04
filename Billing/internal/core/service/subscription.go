@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/logger"
@@ -18,6 +19,7 @@ const subscriptionServiceName = "SubscriptionService"
 
 type subscriptionService struct {
 	subscriptionRepo ports.SubscriptionRepository
+	planRepo         ports.PlanRepository
 	cache            cache.CacheEngine
 	log              *logger.LoggerZap
 }
@@ -25,11 +27,13 @@ type subscriptionService struct {
 // NewSubscriptionService creates a new SubscriptionService instance.
 func NewSubscriptionService(
 	subscriptionRepo ports.SubscriptionRepository,
+	planRepo ports.PlanRepository,
 	cache cache.CacheEngine,
 	log *logger.LoggerZap,
 ) ports.SubscriptionService {
 	return &subscriptionService{
 		subscriptionRepo: subscriptionRepo,
+		planRepo:         planRepo,
 		cache:            cache,
 		log:              log,
 	}
@@ -54,11 +58,64 @@ func (s *subscriptionService) Get(ctx context.Context, id int) (*dto.Subscriptio
 
 // Create creates a new subscription.
 func (s *subscriptionService) Create(ctx context.Context, req *dto.CreateSubscriptionRequest) (*dto.SubscriptionResponse, error) {
-	sub := mapper.ToSubscriptionEntityFromCreate(req)
+	plan, err := s.planRepo.Get(ctx, req.PlanID)
+	if err != nil {
+		return nil, err
+	}
+
+	now, periodEnd := s.calculatePeriod(plan)
+
+	sub := &entity.Subscription{
+		TenantID:           req.TenantID,
+		PlanID:             req.PlanID,
+		Status:             constant.SubscriptionStatusActive,
+		CurrentPeriodStart: now,
+		CurrentPeriodEnd:   periodEnd,
+		CancelAtPeriodEnd:  true,
+	}
 
 	if err := s.subscriptionRepo.Create(ctx, sub); err != nil {
 		return nil, err
 	}
+
+	return mapper.ToSubscriptionResponse(sub), nil
+}
+
+// UpdateByTenant updates a subscription by tenant ID.
+func (s *subscriptionService) UpdateByTenant(ctx context.Context, tenantID int, req *dto.UpdateSubscriptionRequest) (*dto.SubscriptionResponse, error) {
+	sub, err := s.subscriptionRepo.GetByTenantID(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.PlanID != nil {
+		sub.PlanID = *req.PlanID
+
+		plan, err := s.planRepo.Get(ctx, *req.PlanID)
+		if err != nil {
+			return nil, err
+		}
+
+		now, periodEnd := s.calculatePeriod(plan)
+		sub.CurrentPeriodStart = now
+		sub.CurrentPeriodEnd = periodEnd
+	}
+
+	if req.Status != nil {
+		sub.Status = *req.Status
+	}
+	if req.CurrentPeriodEnd != nil {
+		sub.CurrentPeriodEnd = *req.CurrentPeriodEnd
+	}
+	if req.CancelAtPeriodEnd != nil {
+		sub.CancelAtPeriodEnd = *req.CancelAtPeriodEnd
+	}
+
+	if err := s.subscriptionRepo.Update(ctx, sub); err != nil {
+		return nil, err
+	}
+
+	cache.HandleUpdateCache(ctx, sub, s.cache, constant.CacheKeyPrefixSubscriptionID+strconv.Itoa(sub.ID), constant.CacheTTLDefault)
 
 	return mapper.ToSubscriptionResponse(sub), nil
 }
@@ -101,4 +158,21 @@ func (s *subscriptionService) Delete(ctx context.Context, id int) error {
 	_ = cache.HandleDeleteCache(ctx, s.cache, constant.CacheKeyPrefixSubscriptionID+strconv.Itoa(id))
 
 	return nil
+}
+
+func (s *subscriptionService) calculatePeriod(plan *entity.Plan) (time.Time, time.Time) {
+	now := time.Now()
+	var periodEnd time.Time
+
+	switch plan.Period {
+	case constant.PlanPeriodForever:
+		periodEnd = now.AddDate(100, 0, 0)
+	case constant.PlanPeriodYear:
+		periodEnd = now.AddDate(1, 0, 0)
+	case constant.PlanPeriodMonth:
+		fallthrough
+	default:
+		periodEnd = now.AddDate(0, 1, 0)
+	}
+	return now, periodEnd
 }

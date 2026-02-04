@@ -26,7 +26,7 @@ func (Tenant) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty(),
-		field.Int("tier_id").
+		field.Int("plan_id").
 			Default(0),
 	}
 }

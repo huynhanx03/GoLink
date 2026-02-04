@@ -30,7 +30,6 @@ func (s *StepCreateUser) Execute(ctx context.Context) error {
 		return err
 	}
 	s.State.UserID = resp.UserID
-	s.State.TenantID = resp.TenantID
 	return nil
 }
 

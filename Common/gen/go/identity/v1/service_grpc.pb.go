@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	IdentityService_GetUserRole_FullMethodName = "/identity.v1.IdentityService/GetUserRole"
-	IdentityService_CreateUser_FullMethodName  = "/identity.v1.IdentityService/CreateUser"
-	IdentityService_DeleteUser_FullMethodName  = "/identity.v1.IdentityService/DeleteUser"
+	IdentityService_GetUserRole_FullMethodName      = "/identity.v1.IdentityService/GetUserRole"
+	IdentityService_CreateUser_FullMethodName       = "/identity.v1.IdentityService/CreateUser"
+	IdentityService_DeleteUser_FullMethodName       = "/identity.v1.IdentityService/DeleteUser"
+	IdentityService_UpdateTenantPlan_FullMethodName = "/identity.v1.IdentityService/UpdateTenantPlan"
 )
 
 // IdentityServiceClient is the client API for IdentityService service.
@@ -31,6 +32,7 @@ type IdentityServiceClient interface {
 	GetUserRole(ctx context.Context, in *GetUserRoleRequest, opts ...grpc.CallOption) (*GetUserRoleResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	UpdateTenantPlan(ctx context.Context, in *UpdateTenantPlanRequest, opts ...grpc.CallOption) (*UpdateTenantPlanResponse, error)
 }
 
 type identityServiceClient struct {
@@ -71,6 +73,16 @@ func (c *identityServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRe
 	return out, nil
 }
 
+func (c *identityServiceClient) UpdateTenantPlan(ctx context.Context, in *UpdateTenantPlanRequest, opts ...grpc.CallOption) (*UpdateTenantPlanResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateTenantPlanResponse)
+	err := c.cc.Invoke(ctx, IdentityService_UpdateTenantPlan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdentityServiceServer is the server API for IdentityService service.
 // All implementations must embed UnimplementedIdentityServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type IdentityServiceServer interface {
 	GetUserRole(context.Context, *GetUserRoleRequest) (*GetUserRoleResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	UpdateTenantPlan(context.Context, *UpdateTenantPlanRequest) (*UpdateTenantPlanResponse, error)
 	mustEmbedUnimplementedIdentityServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedIdentityServiceServer) CreateUser(context.Context, *CreateUse
 }
 func (UnimplementedIdentityServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedIdentityServiceServer) UpdateTenantPlan(context.Context, *UpdateTenantPlanRequest) (*UpdateTenantPlanResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTenantPlan not implemented")
 }
 func (UnimplementedIdentityServiceServer) mustEmbedUnimplementedIdentityServiceServer() {}
 func (UnimplementedIdentityServiceServer) testEmbeddedByValue()                         {}
@@ -172,6 +188,24 @@ func _IdentityService_DeleteUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IdentityService_UpdateTenantPlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTenantPlanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).UpdateTenantPlan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_UpdateTenantPlan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).UpdateTenantPlan(ctx, req.(*UpdateTenantPlanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IdentityService_ServiceDesc is the grpc.ServiceDesc for IdentityService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var IdentityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUser",
 			Handler:    _IdentityService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "UpdateTenantPlan",
+			Handler:    _IdentityService_UpdateTenantPlan_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

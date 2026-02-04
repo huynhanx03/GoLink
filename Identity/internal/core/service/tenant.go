@@ -19,13 +19,22 @@ import (
 const tenantServiceName = "TenantService"
 
 type tenantService struct {
-	tenantRepo ports.TenantRepository
-	cache      cache.LocalCache[string, any]
+	tenantRepo       ports.TenantRepository
+	tenantMemberRepo ports.TenantMemberRepository
+	cache            cache.LocalCache[string, any]
 }
 
 // NewTenantService creates a new TenantService instance.
-func NewTenantService(tenantRepo ports.TenantRepository, cache cache.LocalCache[string, any]) ports.TenantService {
-	return &tenantService{tenantRepo: tenantRepo, cache: cache}
+func NewTenantService(
+	tenantRepo ports.TenantRepository,
+	tenantMemberRepo ports.TenantMemberRepository,
+	cache cache.LocalCache[string, any],
+) ports.TenantService {
+	return &tenantService{
+		tenantRepo:       tenantRepo,
+		tenantMemberRepo: tenantMemberRepo,
+		cache:            cache,
+	}
 }
 
 // Get retrieves a tenant by ID.
@@ -65,8 +74,8 @@ func (s *tenantService) Update(ctx context.Context, id int, req *dto.UpdateTenan
 	if req.Name != nil {
 		tenant.Name = *req.Name
 	}
-	if req.TierID != nil {
-		tenant.TierID = *req.TierID
+	if req.PlanID != nil {
+		tenant.PlanID = *req.PlanID
 	}
 
 	tenant.ID = id
@@ -100,4 +109,33 @@ func (s *tenantService) Delete(ctx context.Context, id int) error {
 	cache.DeleteLocal(s.cache, cacheKeyID)
 
 	return nil
+}
+
+// GetByUserID retrieves all tenants that a user belongs to.
+func (s *tenantService) GetByUserID(ctx context.Context, userID int) ([]*dto.TenantResponse, error) {
+	memberships, err := s.tenantMemberRepo.GetByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(memberships) == 0 {
+		return []*dto.TenantResponse{}, nil
+	}
+
+	tenantIDs := make([]int, len(memberships))
+	for i, m := range memberships {
+		tenantIDs[i] = m.TenantID
+	}
+
+	tenants, err := s.tenantRepo.GetByIDs(ctx, tenantIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]*dto.TenantResponse, len(tenants))
+	for i, t := range tenants {
+		responses[i] = mapper.ToTenantResponse(t)
+	}
+
+	return responses, nil
 }

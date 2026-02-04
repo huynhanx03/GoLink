@@ -16,6 +16,7 @@ func InitOrchestratorDependencies(clientContainer *ClientContainer) *Orchestrato
 	svc := service.NewOrchestratorService(
 		clientContainer.IdentityClient,
 		clientContainer.BillingClient,
+		clientContainer.PaymentClient,
 	)
 
 	// Handler

@@ -16,8 +16,6 @@ func Run() error {
 	SetupKeys()
 	di.SetupDependencies()
 
-	Initialized()
-
 	// Start gRPC Server
 	grpcServer := NewGRPCServer()
 	go func() {

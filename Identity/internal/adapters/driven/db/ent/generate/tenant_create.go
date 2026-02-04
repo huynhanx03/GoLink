@@ -86,16 +86,16 @@ func (_c *TenantCreate) SetName(v string) *TenantCreate {
 	return _c
 }
 
-// SetTierID sets the "tier_id" field.
-func (_c *TenantCreate) SetTierID(v int) *TenantCreate {
-	_c.mutation.SetTierID(v)
+// SetPlanID sets the "plan_id" field.
+func (_c *TenantCreate) SetPlanID(v int) *TenantCreate {
+	_c.mutation.SetPlanID(v)
 	return _c
 }
 
-// SetNillableTierID sets the "tier_id" field if the given value is not nil.
-func (_c *TenantCreate) SetNillableTierID(v *int) *TenantCreate {
+// SetNillablePlanID sets the "plan_id" field if the given value is not nil.
+func (_c *TenantCreate) SetNillablePlanID(v *int) *TenantCreate {
 	if v != nil {
-		_c.SetTierID(*v)
+		_c.SetPlanID(*v)
 	}
 	return _c
 }
@@ -181,9 +181,9 @@ func (_c *TenantCreate) defaults() error {
 		v := tenant.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.TierID(); !ok {
-		v := tenant.DefaultTierID
-		_c.mutation.SetTierID(v)
+	if _, ok := _c.mutation.PlanID(); !ok {
+		v := tenant.DefaultPlanID
+		_c.mutation.SetPlanID(v)
 	}
 	return nil
 }
@@ -204,8 +204,8 @@ func (_c *TenantCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`generate: validator failed for field "Tenant.name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.TierID(); !ok {
-		return &ValidationError{Name: "tier_id", err: errors.New(`generate: missing required field "Tenant.tier_id"`)}
+	if _, ok := _c.mutation.PlanID(); !ok {
+		return &ValidationError{Name: "plan_id", err: errors.New(`generate: missing required field "Tenant.plan_id"`)}
 	}
 	return nil
 }
@@ -254,9 +254,9 @@ func (_c *TenantCreate) createSpec() (*Tenant, *sqlgraph.CreateSpec) {
 		_spec.SetField(tenant.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := _c.mutation.TierID(); ok {
-		_spec.SetField(tenant.FieldTierID, field.TypeInt, value)
-		_node.TierID = value
+	if value, ok := _c.mutation.PlanID(); ok {
+		_spec.SetField(tenant.FieldPlanID, field.TypeInt, value)
+		_node.PlanID = value
 	}
 	if nodes := _c.mutation.TenantMembersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -408,21 +408,21 @@ func (u *TenantUpsert) UpdateName() *TenantUpsert {
 	return u
 }
 
-// SetTierID sets the "tier_id" field.
-func (u *TenantUpsert) SetTierID(v int) *TenantUpsert {
-	u.Set(tenant.FieldTierID, v)
+// SetPlanID sets the "plan_id" field.
+func (u *TenantUpsert) SetPlanID(v int) *TenantUpsert {
+	u.Set(tenant.FieldPlanID, v)
 	return u
 }
 
-// UpdateTierID sets the "tier_id" field to the value that was provided on create.
-func (u *TenantUpsert) UpdateTierID() *TenantUpsert {
-	u.SetExcluded(tenant.FieldTierID)
+// UpdatePlanID sets the "plan_id" field to the value that was provided on create.
+func (u *TenantUpsert) UpdatePlanID() *TenantUpsert {
+	u.SetExcluded(tenant.FieldPlanID)
 	return u
 }
 
-// AddTierID adds v to the "tier_id" field.
-func (u *TenantUpsert) AddTierID(v int) *TenantUpsert {
-	u.Add(tenant.FieldTierID, v)
+// AddPlanID adds v to the "plan_id" field.
+func (u *TenantUpsert) AddPlanID(v int) *TenantUpsert {
+	u.Add(tenant.FieldPlanID, v)
 	return u
 }
 
@@ -548,24 +548,24 @@ func (u *TenantUpsertOne) UpdateName() *TenantUpsertOne {
 	})
 }
 
-// SetTierID sets the "tier_id" field.
-func (u *TenantUpsertOne) SetTierID(v int) *TenantUpsertOne {
+// SetPlanID sets the "plan_id" field.
+func (u *TenantUpsertOne) SetPlanID(v int) *TenantUpsertOne {
 	return u.Update(func(s *TenantUpsert) {
-		s.SetTierID(v)
+		s.SetPlanID(v)
 	})
 }
 
-// AddTierID adds v to the "tier_id" field.
-func (u *TenantUpsertOne) AddTierID(v int) *TenantUpsertOne {
+// AddPlanID adds v to the "plan_id" field.
+func (u *TenantUpsertOne) AddPlanID(v int) *TenantUpsertOne {
 	return u.Update(func(s *TenantUpsert) {
-		s.AddTierID(v)
+		s.AddPlanID(v)
 	})
 }
 
-// UpdateTierID sets the "tier_id" field to the value that was provided on create.
-func (u *TenantUpsertOne) UpdateTierID() *TenantUpsertOne {
+// UpdatePlanID sets the "plan_id" field to the value that was provided on create.
+func (u *TenantUpsertOne) UpdatePlanID() *TenantUpsertOne {
 	return u.Update(func(s *TenantUpsert) {
-		s.UpdateTierID()
+		s.UpdatePlanID()
 	})
 }
 
@@ -862,24 +862,24 @@ func (u *TenantUpsertBulk) UpdateName() *TenantUpsertBulk {
 	})
 }
 
-// SetTierID sets the "tier_id" field.
-func (u *TenantUpsertBulk) SetTierID(v int) *TenantUpsertBulk {
+// SetPlanID sets the "plan_id" field.
+func (u *TenantUpsertBulk) SetPlanID(v int) *TenantUpsertBulk {
 	return u.Update(func(s *TenantUpsert) {
-		s.SetTierID(v)
+		s.SetPlanID(v)
 	})
 }
 
-// AddTierID adds v to the "tier_id" field.
-func (u *TenantUpsertBulk) AddTierID(v int) *TenantUpsertBulk {
+// AddPlanID adds v to the "plan_id" field.
+func (u *TenantUpsertBulk) AddPlanID(v int) *TenantUpsertBulk {
 	return u.Update(func(s *TenantUpsert) {
-		s.AddTierID(v)
+		s.AddPlanID(v)
 	})
 }
 
-// UpdateTierID sets the "tier_id" field to the value that was provided on create.
-func (u *TenantUpsertBulk) UpdateTierID() *TenantUpsertBulk {
+// UpdatePlanID sets the "plan_id" field to the value that was provided on create.
+func (u *TenantUpsertBulk) UpdatePlanID() *TenantUpsertBulk {
 	return u.Update(func(s *TenantUpsert) {
-		s.UpdateTierID()
+		s.UpdatePlanID()
 	})
 }
 

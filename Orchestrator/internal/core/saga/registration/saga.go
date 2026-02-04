@@ -24,7 +24,6 @@ type State struct {
 
 	// Output
 	UserID         int64
-	TenantID       int64
 	SubscriptionID int64
 }
 
@@ -68,16 +67,10 @@ func (s *Saga) Execute(ctx context.Context) (*dto.RegisterResponse, error) {
 	coordinator := saga.NewCoordinator(s.BuildSteps()...)
 
 	if err := coordinator.Execute(ctx); err != nil {
-		return &dto.RegisterResponse{
-			Success: false,
-			Message: err.Error(),
-		}, nil
+		return nil, err
 	}
 
 	return &dto.RegisterResponse{
-		UserID:   s.state.UserID,
-		TenantID: s.state.TenantID,
-		Success:  true,
-		Message:  "User registered successfully",
+		UserID: s.state.UserID,
 	}, nil
 }

@@ -66,7 +66,10 @@ func (r *UserAttributeValueRepository) CreateBulk(ctx context.Context, entities 
 		builders[i] = builder.BuildCreateUserAttributeValue(ctx, e)
 	}
 
-	return commonEnt.MapEntError(r.client.DB(ctx).UserAttributeValue.CreateBulk(builders...).Exec(ctx), userAttrValueRepoName)
+	if err := r.client.DB(ctx).UserAttributeValue.CreateBulk(builders...).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, userAttrValueRepoName)
+	}
+	return nil
 }
 
 func (r *UserAttributeValueRepository) UpdateBulk(ctx context.Context, entities []*entity.UserAttributeValue) error {
@@ -79,7 +82,10 @@ func (r *UserAttributeValueRepository) UpdateBulk(ctx context.Context, entities 
 		OnConflict().
 		UpdateNewValues().
 		Exec(ctx)
-	return commonEnt.MapEntError(err, userAttrValueRepoName)
+	if err != nil {
+		return commonEnt.MapEntError(err, userAttrValueRepoName)
+	}
+	return nil
 }
 
 func (r *UserAttributeValueRepository) Update(ctx context.Context, e *entity.UserAttributeValue) error {
@@ -93,10 +99,16 @@ func (r *UserAttributeValueRepository) Update(ctx context.Context, e *entity.Use
 }
 
 func (r *UserAttributeValueRepository) Delete(ctx context.Context, id int) error {
-	return commonEnt.MapEntError(r.client.DB(ctx).UserAttributeValue.DeleteOneID(id).Exec(ctx), userAttrValueRepoName)
+	if err := r.client.DB(ctx).UserAttributeValue.DeleteOneID(id).Exec(ctx); err != nil {
+		return commonEnt.MapEntError(err, userAttrValueRepoName)
+	}
+	return nil
 }
 
 func (r *UserAttributeValueRepository) DeleteByUserID(ctx context.Context, userID int) error {
 	_, err := r.client.DB(ctx).UserAttributeValue.Delete().Where(userattributevalue.UserID(userID)).Exec(ctx)
-	return commonEnt.MapEntError(err, userAttrValueRepoName)
+	if err != nil {
+		return commonEnt.MapEntError(err, userAttrValueRepoName)
+	}
+	return nil
 }

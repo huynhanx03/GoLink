@@ -80,9 +80,9 @@ func Name(v string) predicate.Tenant {
 	return predicate.Tenant(sql.FieldEQ(FieldName, v))
 }
 
-// TierID applies equality check predicate on the "tier_id" field. It's identical to TierIDEQ.
-func TierID(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldEQ(FieldTierID, v))
+// PlanID applies equality check predicate on the "plan_id" field. It's identical to PlanIDEQ.
+func PlanID(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldEQ(FieldPlanID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -330,44 +330,44 @@ func NameContainsFold(v string) predicate.Tenant {
 	return predicate.Tenant(sql.FieldContainsFold(FieldName, v))
 }
 
-// TierIDEQ applies the EQ predicate on the "tier_id" field.
-func TierIDEQ(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldEQ(FieldTierID, v))
+// PlanIDEQ applies the EQ predicate on the "plan_id" field.
+func PlanIDEQ(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldEQ(FieldPlanID, v))
 }
 
-// TierIDNEQ applies the NEQ predicate on the "tier_id" field.
-func TierIDNEQ(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldNEQ(FieldTierID, v))
+// PlanIDNEQ applies the NEQ predicate on the "plan_id" field.
+func PlanIDNEQ(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldNEQ(FieldPlanID, v))
 }
 
-// TierIDIn applies the In predicate on the "tier_id" field.
-func TierIDIn(vs ...int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldIn(FieldTierID, vs...))
+// PlanIDIn applies the In predicate on the "plan_id" field.
+func PlanIDIn(vs ...int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldIn(FieldPlanID, vs...))
 }
 
-// TierIDNotIn applies the NotIn predicate on the "tier_id" field.
-func TierIDNotIn(vs ...int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldNotIn(FieldTierID, vs...))
+// PlanIDNotIn applies the NotIn predicate on the "plan_id" field.
+func PlanIDNotIn(vs ...int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldNotIn(FieldPlanID, vs...))
 }
 
-// TierIDGT applies the GT predicate on the "tier_id" field.
-func TierIDGT(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldGT(FieldTierID, v))
+// PlanIDGT applies the GT predicate on the "plan_id" field.
+func PlanIDGT(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldGT(FieldPlanID, v))
 }
 
-// TierIDGTE applies the GTE predicate on the "tier_id" field.
-func TierIDGTE(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldGTE(FieldTierID, v))
+// PlanIDGTE applies the GTE predicate on the "plan_id" field.
+func PlanIDGTE(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldGTE(FieldPlanID, v))
 }
 
-// TierIDLT applies the LT predicate on the "tier_id" field.
-func TierIDLT(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldLT(FieldTierID, v))
+// PlanIDLT applies the LT predicate on the "plan_id" field.
+func PlanIDLT(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldLT(FieldPlanID, v))
 }
 
-// TierIDLTE applies the LTE predicate on the "tier_id" field.
-func TierIDLTE(v int) predicate.Tenant {
-	return predicate.Tenant(sql.FieldLTE(FieldTierID, v))
+// PlanIDLTE applies the LTE predicate on the "plan_id" field.
+func PlanIDLTE(v int) predicate.Tenant {
+	return predicate.Tenant(sql.FieldLTE(FieldPlanID, v))
 }
 
 // HasTenantMembers applies the HasEdge predicate on the "tenant_members" edge.

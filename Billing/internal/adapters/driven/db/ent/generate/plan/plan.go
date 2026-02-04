@@ -25,12 +25,14 @@ const (
 	FieldDeletedBy = "deleted_by"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
 	// FieldBasePrice holds the string denoting the base_price field in the database.
 	FieldBasePrice = "base_price"
 	// FieldPeriod holds the string denoting the period field in the database.
 	FieldPeriod = "period"
-	// FieldLimits holds the string denoting the limits field in the database.
-	FieldLimits = "limits"
+	// FieldFeatures holds the string denoting the features field in the database.
+	FieldFeatures = "features"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// EdgeSubscriptions holds the string denoting the subscriptions edge name in mutations.
@@ -54,9 +56,10 @@ var Columns = []string{
 	FieldDeletedAt,
 	FieldDeletedBy,
 	FieldName,
+	FieldDescription,
 	FieldBasePrice,
 	FieldPeriod,
-	FieldLimits,
+	FieldFeatures,
 	FieldIsActive,
 }
 
@@ -86,6 +89,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
 	// BasePriceValidator is a validator for the "base_price" field. It is called by the builders before save.
 	BasePriceValidator func(float64) error
 	// PeriodValidator is a validator for the "period" field. It is called by the builders before save.
@@ -125,6 +130,11 @@ func ByDeletedBy(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
 // ByBasePrice orders the results by the base_price field.

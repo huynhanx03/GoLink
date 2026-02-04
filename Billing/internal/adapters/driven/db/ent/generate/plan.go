@@ -28,12 +28,14 @@ type Plan struct {
 	DeletedBy *int `json:"deleted_by,omitempty"`
 	// Display name
 	Name string `json:"name,omitempty"`
+	// Plan description
+	Description string `json:"description,omitempty"`
 	// Base price in USD
 	BasePrice float64 `json:"base_price,omitempty"`
 	// Billing period: 'month' or 'year'
 	Period string `json:"period,omitempty"`
 	// Feature limits (e.g., {"max_links": 1000})
-	Limits map[string]interface{} `json:"limits,omitempty"`
+	Features map[string]interface{} `json:"features,omitempty"`
 	// Soft delete flag
 	IsActive bool `json:"is_active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -65,7 +67,7 @@ func (*Plan) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case plan.FieldLimits:
+		case plan.FieldFeatures:
 			values[i] = new([]byte)
 		case plan.FieldIsActive:
 			values[i] = new(sql.NullBool)
@@ -73,7 +75,7 @@ func (*Plan) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case plan.FieldID, plan.FieldDeletedBy:
 			values[i] = new(sql.NullInt64)
-		case plan.FieldName, plan.FieldPeriod:
+		case plan.FieldName, plan.FieldDescription, plan.FieldPeriod:
 			values[i] = new(sql.NullString)
 		case plan.FieldCreatedAt, plan.FieldUpdatedAt, plan.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -130,6 +132,12 @@ func (_m *Plan) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Name = value.String
 			}
+		case plan.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				_m.Description = value.String
+			}
 		case plan.FieldBasePrice:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field base_price", values[i])
@@ -142,12 +150,12 @@ func (_m *Plan) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Period = value.String
 			}
-		case plan.FieldLimits:
+		case plan.FieldFeatures:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field limits", values[i])
+				return fmt.Errorf("unexpected type %T for field features", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Limits); err != nil {
-					return fmt.Errorf("unmarshal field limits: %w", err)
+				if err := json.Unmarshal(*value, &_m.Features); err != nil {
+					return fmt.Errorf("unmarshal field features: %w", err)
 				}
 			}
 		case plan.FieldIsActive:
@@ -216,14 +224,17 @@ func (_m *Plan) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
 	builder.WriteString("base_price=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BasePrice))
 	builder.WriteString(", ")
 	builder.WriteString("period=")
 	builder.WriteString(_m.Period)
 	builder.WriteString(", ")
-	builder.WriteString("limits=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Limits))
+	builder.WriteString("features=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Features))
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))

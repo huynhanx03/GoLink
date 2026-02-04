@@ -264,7 +264,6 @@ func (x *CreateUserRequest) GetBirthday() string {
 type CreateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	TenantId      int64                  `protobuf:"varint,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -302,13 +301,6 @@ func (*CreateUserResponse) Descriptor() ([]byte, []int) {
 func (x *CreateUserResponse) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
-	}
-	return 0
-}
-
-func (x *CreateUserResponse) GetTenantId() int64 {
-	if x != nil {
-		return x.TenantId
 	}
 	return 0
 }
@@ -401,6 +393,102 @@ func (x *DeleteUserResponse) GetSuccess() bool {
 	return false
 }
 
+type UpdateTenantPlanRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      int64                  `protobuf:"varint,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	PlanId        int64                  `protobuf:"varint,2,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTenantPlanRequest) Reset() {
+	*x = UpdateTenantPlanRequest{}
+	mi := &file_identity_v1_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTenantPlanRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTenantPlanRequest) ProtoMessage() {}
+
+func (x *UpdateTenantPlanRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTenantPlanRequest.ProtoReflect.Descriptor instead.
+func (*UpdateTenantPlanRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateTenantPlanRequest) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *UpdateTenantPlanRequest) GetPlanId() int64 {
+	if x != nil {
+		return x.PlanId
+	}
+	return 0
+}
+
+type UpdateTenantPlanResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTenantPlanResponse) Reset() {
+	*x = UpdateTenantPlanResponse{}
+	mi := &file_identity_v1_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTenantPlanResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTenantPlanResponse) ProtoMessage() {}
+
+func (x *UpdateTenantPlanResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTenantPlanResponse.ProtoReflect.Descriptor instead.
+func (*UpdateTenantPlanResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateTenantPlanResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
 var File_identity_v1_service_proto protoreflect.FileDescriptor
 
 const file_identity_v1_service_proto_rawDesc = "" +
@@ -422,20 +510,25 @@ const file_identity_v1_service_proto_rawDesc = "" +
 	"first_name\x18\x03 \x01(\tR\tfirstName\x12\x1b\n" +
 	"\tlast_name\x18\x04 \x01(\tR\blastName\x12\x16\n" +
 	"\x06gender\x18\x05 \x01(\x05R\x06gender\x12\x1a\n" +
-	"\bbirthday\x18\x06 \x01(\tR\bbirthday\"J\n" +
+	"\bbirthday\x18\x06 \x01(\tR\bbirthday\"-\n" +
 	"\x12CreateUserResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1b\n" +
-	"\ttenant_id\x18\x02 \x01(\x03R\btenantId\",\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\",\n" +
 	"\x11DeleteUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\".\n" +
 	"\x12DeleteUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\x81\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"O\n" +
+	"\x17UpdateTenantPlanRequest\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\x03R\btenantId\x12\x17\n" +
+	"\aplan_id\x18\x02 \x01(\x03R\x06planId\"4\n" +
+	"\x18UpdateTenantPlanResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xe2\x02\n" +
 	"\x0fIdentityService\x12P\n" +
 	"\vGetUserRole\x12\x1f.identity.v1.GetUserRoleRequest\x1a .identity.v1.GetUserRoleResponse\x12M\n" +
 	"\n" +
 	"CreateUser\x12\x1e.identity.v1.CreateUserRequest\x1a\x1f.identity.v1.CreateUserResponse\x12M\n" +
 	"\n" +
-	"DeleteUser\x12\x1e.identity.v1.DeleteUserRequest\x1a\x1f.identity.v1.DeleteUserResponseB+Z)go-link/common/gen/identity/v1;identityv1b\x06proto3"
+	"DeleteUser\x12\x1e.identity.v1.DeleteUserRequest\x1a\x1f.identity.v1.DeleteUserResponse\x12_\n" +
+	"\x10UpdateTenantPlan\x12$.identity.v1.UpdateTenantPlanRequest\x1a%.identity.v1.UpdateTenantPlanResponseB+Z)go-link/common/gen/identity/v1;identityv1b\x06proto3"
 
 var (
 	file_identity_v1_service_proto_rawDescOnce sync.Once
@@ -449,26 +542,30 @@ func file_identity_v1_service_proto_rawDescGZIP() []byte {
 	return file_identity_v1_service_proto_rawDescData
 }
 
-var file_identity_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_identity_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_identity_v1_service_proto_goTypes = []any{
-	(*GetUserRoleRequest)(nil),  // 0: identity.v1.GetUserRoleRequest
-	(*GetUserRoleResponse)(nil), // 1: identity.v1.GetUserRoleResponse
-	(*Role)(nil),                // 2: identity.v1.Role
-	(*CreateUserRequest)(nil),   // 3: identity.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),  // 4: identity.v1.CreateUserResponse
-	(*DeleteUserRequest)(nil),   // 5: identity.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),  // 6: identity.v1.DeleteUserResponse
+	(*GetUserRoleRequest)(nil),       // 0: identity.v1.GetUserRoleRequest
+	(*GetUserRoleResponse)(nil),      // 1: identity.v1.GetUserRoleResponse
+	(*Role)(nil),                     // 2: identity.v1.Role
+	(*CreateUserRequest)(nil),        // 3: identity.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),       // 4: identity.v1.CreateUserResponse
+	(*DeleteUserRequest)(nil),        // 5: identity.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),       // 6: identity.v1.DeleteUserResponse
+	(*UpdateTenantPlanRequest)(nil),  // 7: identity.v1.UpdateTenantPlanRequest
+	(*UpdateTenantPlanResponse)(nil), // 8: identity.v1.UpdateTenantPlanResponse
 }
 var file_identity_v1_service_proto_depIdxs = []int32{
 	2, // 0: identity.v1.GetUserRoleResponse.role:type_name -> identity.v1.Role
 	0, // 1: identity.v1.IdentityService.GetUserRole:input_type -> identity.v1.GetUserRoleRequest
 	3, // 2: identity.v1.IdentityService.CreateUser:input_type -> identity.v1.CreateUserRequest
 	5, // 3: identity.v1.IdentityService.DeleteUser:input_type -> identity.v1.DeleteUserRequest
-	1, // 4: identity.v1.IdentityService.GetUserRole:output_type -> identity.v1.GetUserRoleResponse
-	4, // 5: identity.v1.IdentityService.CreateUser:output_type -> identity.v1.CreateUserResponse
-	6, // 6: identity.v1.IdentityService.DeleteUser:output_type -> identity.v1.DeleteUserResponse
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
+	7, // 4: identity.v1.IdentityService.UpdateTenantPlan:input_type -> identity.v1.UpdateTenantPlanRequest
+	1, // 5: identity.v1.IdentityService.GetUserRole:output_type -> identity.v1.GetUserRoleResponse
+	4, // 6: identity.v1.IdentityService.CreateUser:output_type -> identity.v1.CreateUserResponse
+	6, // 7: identity.v1.IdentityService.DeleteUser:output_type -> identity.v1.DeleteUserResponse
+	8, // 8: identity.v1.IdentityService.UpdateTenantPlan:output_type -> identity.v1.UpdateTenantPlanResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -485,7 +582,7 @@ func file_identity_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_v1_service_proto_rawDesc), len(file_identity_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
