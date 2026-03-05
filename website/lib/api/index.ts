@@ -23,6 +23,8 @@ export {
 export { authService } from "./services/auth.service";
 export { planService } from "./services/plan.service";
 
+export { identityService } from "./services/identity.service";
+
 // Keep existing services for backward compatibility
 export { linkService } from "./services/link.service";
 export { tenantService } from "./services/tenant.service";

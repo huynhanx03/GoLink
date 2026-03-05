@@ -109,6 +109,69 @@ export interface UserDto {
 }
 
 // ============================================
+// Identity DTOs - Roles, Resources, Permissions
+// ============================================
+
+export interface RoleDto {
+    id: number;
+    name: string;
+    level: number;
+}
+
+export interface CreateRoleDto {
+    name: string;
+    level: number;
+    parent_id?: number;
+}
+
+export interface ResourceDto {
+    id: number;
+    key: string;
+    description?: string;
+}
+
+export interface PermissionDto {
+    id: number;
+    role_id: number;
+    resource_id: number;
+    description?: string;
+    scopes: number;
+}
+
+export interface CreatePermissionDto {
+    role_id: number;
+    resource_id: number;
+    description?: string;
+    scopes: number;
+}
+
+export interface UpdatePermissionDto {
+    description?: string;
+    scopes?: number;
+}
+
+// Query/Pagination DTOs matching backend QueryOptions
+export interface QueryOptionsDto {
+    pagination?: { page: number; page_size: number };
+    filters?: { key: string; value: unknown; type: string }[];
+    sort?: { key: string; order: number }[];
+}
+
+export interface PaginationMeta {
+    current_page: number;
+    page_size: number;
+    total_pages: number;
+    total_items: number;
+    has_next: boolean;
+    has_prev: boolean;
+}
+
+export interface PaginatedDto<T> {
+    records: T[];
+    pagination: PaginationMeta;
+}
+
+// ============================================
 // Plan DTOs - Matched with Actual Backend Response
 // ============================================
 

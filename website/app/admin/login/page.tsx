@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authService } from "@/lib/api";
+import { decodeTokenPayload } from "@/lib/api/token";
 import { toast } from "sonner";
 import { Loader2, Lock, User, Shield } from "lucide-react";
 import { Navbar } from "@/components/shared";
@@ -32,7 +33,8 @@ export default function AdminLoginPage() {
         const result = await authService.login({ username, password });
 
         if (result.success && result.data) {
-            if (result.data.role !== "admin") {
+            const claims = decodeTokenPayload<{ is_admin: boolean }>(result.data.access_token);
+            if (!claims?.is_admin) {
                 toast.error("Access denied. Admin credentials required.");
                 setIsLoading(false);
                 return;

@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/lib/api";
-import { UserWithTenants } from "@/lib/types";
+import { getAccessToken, decodeTokenPayload } from "@/lib/api/token";
 import { AdminSidebar, AdminHeader } from "@/components/shared";
 import { Loader2 } from "lucide-react";
+
+interface AdminClaims {
+    is_admin: boolean;
+    user_id: number;
+    username: string;
+}
 
 export default function AdminLayout({
     children,
@@ -13,31 +18,27 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
-    const [user, setUser] = useState<UserWithTenants | null>(null);
+    const [claims, setClaims] = useState<AdminClaims | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const result = await authService.getCurrentUser();
+        const token = getAccessToken();
+        if (!token) {
+            router.push("/admin/login");
+            return;
+        }
 
-            if (!result.success || !result.data) {
-                router.push("/admin/login");
-                return;
-            }
+        const decoded = decodeTokenPayload<AdminClaims>(token);
+        if (!decoded?.is_admin) {
+            router.push("/admin/login");
+            return;
+        }
 
-            if (result.data.role !== "admin") {
-                router.push("/admin/login");
-                return;
-            }
-
-            setUser(result.data);
-            setIsLoading(false);
-        };
-
-        checkAuth();
+        setClaims(decoded);
+        setIsLoading(false);
     }, [router]);
 
-    if (isLoading) {
+    if (isLoading || !claims) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -45,17 +46,13 @@ export default function AdminLayout({
         );
     }
 
-    if (!user) {
-        return null;
-    }
-
     return (
         <div className="min-h-screen bg-background">
             <AdminSidebar
                 user={{
-                    name: user.name,
-                    email: user.email || "",
-                    avatar: user.avatar,
+                    name: claims.username,
+                    email: "",
+                    avatar: undefined,
                 }}
             />
             <AdminHeader />
