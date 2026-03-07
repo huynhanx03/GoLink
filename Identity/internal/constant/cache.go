@@ -1,5 +1,7 @@
 package constant
 
+import "time"
+
 const (
 	// Cost
 	CacheCostRolePermissions = 1
@@ -21,7 +23,16 @@ const (
 	CacheKeyPrefixTenantID        = "tenant::id::"
 	CacheKeyPrefixTenantName      = "tenant::name::"
 	CacheKeyPrefixDomainID        = "domain::id::"
-	
+
 	// Permission Config Version
 	CacheKeyPermissionConfigVersion = "perm_conf_ver"
+
+	// Auth Redis Keys
+	CacheKeyAuthBlacklistJTI    = "auth:blacklist:jti:"
+	CacheKeyAuthRateLimitForgot = "auth:ratelimit:forgot:"
+
+	// TTLs
+	OAuthTokenTTL      = 10 * time.Minute
+	ResetTokenTTL      = 15 * time.Minute
+	ForgotRateLimitTTL = 1 * time.Minute
 )

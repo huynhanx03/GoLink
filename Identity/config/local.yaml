@@ -17,6 +17,21 @@ kafka:
   consumer_batch_size: 100
   consumer_batch_interval: 1000
 
+redis:
+  addrs:
+    - "localhost:2005"
+  password: ""
+  database: 0
+  pool_size: 10
+  min_idle_conns: 5
+  pool_timeout: 5
+  dial_timeout: 5
+  read_timeout: 3
+  write_timeout: 3
+  max_retries: 3
+  min_retry_backoff: 300
+  max_retry_backoff: 500
+
 database:
   driver: "postgres"
   host: "localhost"

@@ -85,6 +85,19 @@ func (r *FederatedIdentityRepository) Get(ctx context.Context, id int) (*entity.
 	return mapper.ToFederatedIdentityEntity(record), nil
 }
 
+// GetByProviderAndExternalID finds a federated identity by provider and external ID.
+func (r *FederatedIdentityRepository) GetByProviderAndExternalID(ctx context.Context, provider, externalID string) (*entity.FederatedIdentity, error) {
+	record, err := r.client.DB(ctx).FederatedIdentity.Query().
+		Where(
+			federatedidentity.Provider(provider),
+			federatedidentity.ExternalID(externalID),
+		).Only(ctx)
+	if err != nil {
+		return nil, commonEnt.MapEntError(err, fedIdentityRepoName)
+	}
+	return mapper.ToFederatedIdentityEntity(record), nil
+}
+
 func (r *FederatedIdentityRepository) Create(ctx context.Context, e *entity.FederatedIdentity) error {
 	create := builder.BuildCreateFederatedIdentity(ctx, e)
 	record, err := create.Save(ctx)

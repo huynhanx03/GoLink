@@ -57,6 +57,10 @@ func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
 	{
 		public.POST("/register", handler.Wrap(rg.AuthenticationHandler.Register))
 		public.POST("/login", handler.Wrap(rg.AuthenticationHandler.Login))
+		public.POST("/oauth/:provider/callback", handler.Wrap(rg.AuthenticationHandler.OAuthCallback))
+		public.POST("/oauth/:provider/register", handler.Wrap(rg.AuthenticationHandler.OAuthRegister))
+		public.POST("/forgot-password", handler.Wrap(rg.AuthenticationHandler.ForgotPassword))
+		public.POST("/reset-password", handler.Wrap(rg.AuthenticationHandler.ResetPassword))
 	}
 
 	// Protected Routes
@@ -69,6 +73,7 @@ func (rg *RouterGroup) registerRoutes(r *gin.Engine) {
 			auth.POST("/tenant-access", handler.Wrap(rg.AuthenticationHandler.AcquireToken))
 			auth.POST("/change-password", handler.Wrap(rg.AuthenticationHandler.ChangePassword))
 			auth.POST("/refresh", handler.Wrap(rg.AuthenticationHandler.RefreshToken))
+			auth.POST("/oauth/:provider/link", handler.Wrap(rg.AuthenticationHandler.LinkOAuth))
 		}
 
 		// Tenants

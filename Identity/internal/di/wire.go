@@ -1,6 +1,11 @@
 package di
 
-import "go-link/identity/global"
+import (
+	"fmt"
+
+	"go-link/common/pkg/mq/kafka"
+	"go-link/identity/global"
+)
 
 // SetupDependencies initializes all dependencies and returns the container.
 func SetupDependencies() *Container {
@@ -20,6 +25,17 @@ func SetupDependencies() *Container {
 
 	userRepo := InitUserRepository(client)
 
+	// Create Kafka SyncProducer for dispatching notification events.
+	// A failure here is non-fatal: the service continues without notification dispatch.
+	kafkaCfg := &kafka.Config{
+		Brokers:  global.Config.Kafka.Brokers,
+		ClientID: "identity-service",
+	}
+	producer, err := kafka.NewSyncProducer(kafkaCfg)
+	if err != nil {
+		fmt.Printf("[WARN] Failed to create Kafka producer, notifications disabled: %v\n", err)
+	}
+
 	authContainer := InitAuthenticationDependencies(
 		userRepo,
 		credentialContainer.Repository,
@@ -30,9 +46,11 @@ func SetupDependencies() *Container {
 		resourceContainer.Repository,
 		attrDefinitionContainer.Repository,
 		attrValueContainer.Repository,
+		federatedIdentityContainer.Repository,
 
 		global.Tinylfu,
 		cacheContainer.Service,
+		producer,
 	)
 
 	userContainer := InitUserDependencies(
