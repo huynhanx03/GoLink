@@ -41,7 +41,13 @@ Zero-Latency Short Code Pool:
 -   **Protection**: Rate Limiting & CORS - Anti-Spam/Abuse (100 req/s/IP).
 
 ### 5. Identity Service
-Refer to [Identity Service Documentation](Identity/README.md) for High Security, Multi-tenancy and Permission architecture.
+Centralized authentication and authorization hub. See [Identity Service Documentation](Identity/README.md) for details.
+
+### 6. Orchestrator Service
+Coordinates distributed transactions using the Saga pattern to ensure system-wide consistency. See [Orchestrator Service Documentation](Orchestrator/README.MD) for details.
+
+### 7. Notification Service
+Enterprise-grade multi-channel notification engine (Email, Push, SSE, Webhooks). See [Notification Service Documentation](Notification/README.md) for details.
 
 ---
 
@@ -49,11 +55,13 @@ Refer to [Identity Service Documentation](Identity/README.md) for High Security,
 
 *   **Language**: Golang
 *   **Communication**: gRPC, HTTP (Gin)
-*   **Database**: ScyllaDB, PostgreSQL
+*   **Database**: ScyllaDB, PostgreSQL, MongoDB
 *   **Cache**: Redis, TinyLFU (Local Cache)
+*   **Message Queue**: Kafka
 *   **Gateway**: Envoy Proxy
 *   **Containerization**: Docker & Docker Compose
 
+---
 
 ## III. Capacity Estimates
 
@@ -84,42 +92,44 @@ Refer to [Identity Service Documentation](Identity/README.md) for High Security,
 ## IV. How to Run
 
 ### 1. Prerequisites
-*   Docker & Docker Compose.
-*   Go 1.22+ (local run).
+- **Docker & Docker Compose**
+- **Go 1.22+** (for local development)
 
 ### 2. Start Infrastructure
+Launch all required databases, message brokers, and proxies:
 ```bash
 make docker-up
 ```
-Wait ~30s for ScyllaDB to start.
 
-### 3. Initialize Database
+### 3. Initialize System
+Wait until ScyllaDB and other services are ready, then run:
 ```bash
 make init-all
 ```
 
-### 4. Start Services
-**Generation Service:**
+### 4. Start Core Services
+Run each service in a separate terminal:
 ```bash
 make run-generation
-```
-
-**Redirection Service:**
-```bash
 make run-redirection
+make run-identity
+make run-orchestrator
 ```
 
-### 5. Usage
-API Gateway port **2222**.
+---
 
-**Create Short Link:**
-```bash
-curl -X POST http://localhost:2222/generation/links \
-  -H "Content-Type: application/json" \
-  -d '{"original_url": "https://google.com"}'
-```
+## V. Roadmap & Contributing
 
-**Access Link:**
-```bash
-curl -v http://localhost:2222/AbCdEfG
-```
+We are constantly working to improve this system. Future plans include:
+- [ ] **Analytics Service**: Real-time traffic analysis and click-through rate (CTR) tracking.
+- [ ] **Project Website**: A modern dashboard for managing links and viewing analytics.
+- [ ] **Monitoring & Observability**: Integrated tracing (Jaeger) and structured logging dashboards.
+
+> **Interested in contributing?**
+> We welcome all contributions! Whether it's fixing bugs, improving docs, or proposing new features, feel free to submit a Pull Request.
+
+---
+
+## VI. License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for the full text.

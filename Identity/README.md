@@ -30,5 +30,20 @@ The protection flow is divided into distinct barrier layers:
 ## 6. Database Design Concepts
 - **REALM_ID (Tenant):** The backbone of the Multi-tenancy system.
 - **USER EAV (Entity-Attribute-Value):** The `user_attribute_values` model allows for dynamic user information extension (Attribute-Based) without altering the table structure.
-- **FEDERATION LINKS:** Supports federated login (`federated_identities`) separated from core users.
+- **FEDERATION LINKS (OAuth):** Generic Strategy Pattern supporting multi-providers (Google, GitHub, etc.) with stateless registration.
 - **RBAC (Symmetric):** Permission model based on core Roles, easy to manage and scale.
+
+## 7. Dynamic OAuth Strategy
+The system implements a **Strategy Pattern** for OAuth, allowing new providers to be added without modifying core services.
+- **Stateless Registration:** Uses signed JWT tickets to carry verified OAuth data before local account creation.
+- **Implicit Identity:** Extracts profile metadata (avatars, full names) into a flexible JSON `CredentialData` column.
+
+## 8. Secure Forgot Password Flow
+Account recovery is designed to be **Stateless** and **Minimalist**, resolving contact emails from linked OAuth credentials.
+
+- **Anti-Enumeration:** Uniform success responses to prevent username discovery.
+- **Single-use Tokens:** Redis-based **JTI Blacklisting** ensures reset links are invalidated immediately after use.
+- **Rate Limiting:** Request throttling (1 req/min) via Redis to prevent email spamming.
+
+![Forgot Password Flow](images/forgot_password.png)
+

@@ -8,6 +8,7 @@ import (
 	"go-link/common/pkg/common/apperr"
 	"go-link/common/pkg/common/cache"
 	"go-link/common/pkg/common/http/response"
+	"go-link/common/pkg/mq/kafka"
 	p "go-link/common/pkg/permissions"
 	"go-link/common/pkg/security"
 	"go-link/common/pkg/utils"
@@ -17,6 +18,7 @@ import (
 	"go-link/identity/internal/core/dto"
 	"go-link/identity/internal/core/entity"
 	"go-link/identity/internal/ports"
+	"go-link/identity/pkg/oauth"
 	u "go-link/identity/pkg/utils"
 )
 
@@ -42,8 +44,11 @@ type authenticationService struct {
 	resourceRepo     ports.ResourceRepository
 	attrDefRepo      ports.AttributeDefinitionRepository
 	attrValueRepo    ports.UserAttributeValueRepository
+	fedIdentityRepo  ports.FederatedIdentityRepository
+	oauthProviders   map[string]oauth.Provider
 	cache            cache.LocalCache[string, any]
 	cacheService     ports.CacheService
+	producer         kafka.SyncProducer
 }
 
 // NewAuthenticationService creates a new AuthenticationService instance.
@@ -57,8 +62,11 @@ func NewAuthenticationService(
 	resourceRepo ports.ResourceRepository,
 	attrDefRepo ports.AttributeDefinitionRepository,
 	attrValueRepo ports.UserAttributeValueRepository,
+	fedIdentityRepo ports.FederatedIdentityRepository,
+	oauthProviders map[string]oauth.Provider,
 	cache cache.LocalCache[string, any],
 	cacheService ports.CacheService,
+	producer kafka.SyncProducer,
 ) ports.AuthenticationService {
 	return &authenticationService{
 		userRepo:         userRepo,
@@ -70,15 +78,18 @@ func NewAuthenticationService(
 		resourceRepo:     resourceRepo,
 		attrDefRepo:      attrDefRepo,
 		attrValueRepo:    attrValueRepo,
+		fedIdentityRepo:  fedIdentityRepo,
+		oauthProviders:   oauthProviders,
 		cache:            cache,
 		cacheService:     cacheService,
+		producer:         producer,
 	}
 }
 
 // Register creates a new user with a personal tenant.
 func (s *authenticationService) Register(ctx context.Context, req *dto.RegisterRequest) (*dto.RegisterResponse, error) {
 	err := global.EntClient.DoInTx(ctx, func(ctx context.Context) error {
-		createUserReq := &dto.CreateUserRequest{
+		_, err := s.registerInternal(ctx, &dto.CreateUserRequest{
 			Username:  req.Username,
 			Password:  req.Password,
 			IsAdmin:   false,
@@ -86,49 +97,8 @@ func (s *authenticationService) Register(ctx context.Context, req *dto.RegisterR
 			LastName:  req.LastName,
 			Gender:    req.Gender,
 			Birthday:  req.Birthday,
-		}
-
-		user, err := s.CreateUser(ctx, createUserReq)
-		if err != nil {
-			return err
-		}
-
-		// Create personal tenant with username as name
-		tenant := &entity.Tenant{
-			Name:   req.Username,
-			PlanID: defaultPlanID, // TODO: UPDATE BILLING SERVICE
-		}
-		if err := s.tenantRepo.Create(ctx, tenant); err != nil {
-			return err
-		}
-
-		cacheKey := constant.CacheKeyPrefixRoleName + roleNameOwner
-		var ownerRole *entity.Role
-
-		if r, found := cache.GetLocal[*entity.Role](s.cache, cacheKey); found {
-			ownerRole = r
-		}
-
-		if ownerRole == nil {
-			var err error
-			ownerRole, err = s.roleRepo.GetByName(ctx, roleNameOwner)
-			if err != nil {
-				return err
-			}
-			cache.SetLocal(s.cache, cacheKey, ownerRole, constant.CacheCostRoleName)
-		}
-
-		// Assign user as owner of the tenant
-		tenantMember := &entity.TenantMember{
-			TenantID: tenant.ID,
-			UserID:   user.ID,
-			RoleID:   ownerRole.ID,
-		}
-		if err := s.tenantMemberRepo.Create(ctx, tenantMember); err != nil {
-			return err
-		}
-
-		return nil
+		})
+		return err
 	})
 
 	if err != nil {
@@ -136,6 +106,53 @@ func (s *authenticationService) Register(ctx context.Context, req *dto.RegisterR
 	}
 
 	return &dto.RegisterResponse{Success: true}, nil
+}
+
+// registerInternal handles the core logic of creating a user, their personal tenant, and assigning ownership.
+// This is used by both standard Register and OAuthRegister flows.
+func (s *authenticationService) registerInternal(ctx context.Context, req *dto.CreateUserRequest) (*entity.User, error) {
+	user, err := s.CreateUser(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create personal tenant with username as name
+	tenant := &entity.Tenant{
+		Name:   req.Username,
+		PlanID: defaultPlanID, // TODO: UPDATE BILLING SERVICE
+	}
+	if err := s.tenantRepo.Create(ctx, tenant); err != nil {
+		return nil, err
+	}
+
+	// Resolve the owner role (with local caching)
+	cacheKey := constant.CacheKeyPrefixRoleName + roleNameOwner
+	var ownerRole *entity.Role
+
+	if r, found := cache.GetLocal[*entity.Role](s.cache, cacheKey); found {
+		ownerRole = r
+	}
+
+	if ownerRole == nil {
+		var err error
+		ownerRole, err = s.roleRepo.GetByName(ctx, roleNameOwner)
+		if err != nil {
+			return nil, err
+		}
+		cache.SetLocal(s.cache, cacheKey, ownerRole, constant.CacheCostRoleName)
+	}
+
+	// Assign user as owner of the tenant
+	tenantMember := &entity.TenantMember{
+		TenantID: tenant.ID,
+		UserID:   user.ID,
+		RoleID:   ownerRole.ID,
+	}
+	if err := s.tenantMemberRepo.Create(ctx, tenantMember); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 // Login processes user login.

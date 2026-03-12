@@ -14,6 +14,9 @@ type Config struct {
 	SnowflakeNode SnowflakeNode `mapstructure:"snowflake_node"`
 	JWT           JWT           `mapstructure:"jwt"`
 	Services      Services      `mapstructure:"services"`
+	Google        Google        `mapstructure:"google"`
+	Resend        Resend        `mapstructure:"resend"`
+	FCM           FCM           `mapstructure:"fcm"`
 }
 
 type Services struct {
@@ -138,4 +141,24 @@ type Snowflake struct {
 type SnowflakeNode struct {
 	Config   Snowflake
 	WorkerID int64 `mapstructure:"worker_id"`
+}
+
+// Google is the configuration for Google OAuth
+type Google struct {
+	ClientID     string `mapstructure:"client_id"`
+	ClientSecret string `mapstructure:"client_secret"`
+	RedirectURL  string `mapstructure:"redirect_url"`
+}
+
+// Resend is the configuration for the Resend email API
+type Resend struct {
+	APIKey    string `mapstructure:"api_key"`
+	FromEmail string `mapstructure:"from_email"`
+	FromName  string `mapstructure:"from_name"`
+}
+
+// FCM is the configuration for Firebase Cloud Messaging
+type FCM struct {
+	ProjectID          string `mapstructure:"project_id"`
+	ServiceAccountPath string `mapstructure:"service_account_path"`
 }

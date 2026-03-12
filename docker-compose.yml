@@ -141,6 +141,18 @@ services:
     networks:
       - golink-net
 
+  mongodb:
+    image: mongo:7.0
+    container_name: golink-mongodb
+    restart: always
+    ports:
+      - "2013:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    networks:
+      - golink-net
+
 networks:
   golink-net:
     driver: bridge

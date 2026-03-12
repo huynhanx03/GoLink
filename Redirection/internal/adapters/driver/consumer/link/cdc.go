@@ -15,6 +15,8 @@ import (
 	"go-link/redirection/internal/constant"
 	"go-link/redirection/internal/core/entity"
 	"go-link/redirection/internal/ports"
+
+	"github.com/huynhanx03/GoLink/events-contract/topics"
 )
 
 const (
@@ -91,8 +93,8 @@ func (c *CDCConsumer) Start(ctx context.Context) error {
 		global.LoggerZap.Error("LinkCDCConsumer error", zap.Error(err))
 	}
 
-	global.LoggerZap.Info("Starting Link CDC Consumer (Batch Mode)", zap.String("topic", constant.TopicLinkCDC))
-	return c.consumer.Start(ctx, []string{constant.TopicLinkCDC}, handler, errHandler)
+	global.LoggerZap.Info("Starting Link CDC Consumer (Batch Mode)", zap.String("topic", topics.LinkCDC))
+	return c.consumer.Start(ctx, []string{topics.LinkCDC}, handler, errHandler)
 }
 
 func (c *CDCConsumer) Stop() error {
