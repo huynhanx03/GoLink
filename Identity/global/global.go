@@ -13,4 +13,5 @@ var (
 	LoggerZap *logger.LoggerZap
 	EntClient *dbEnt.EntClient
 	Tinylfu   cache.LocalCache[string, any]
+	Redis     cache.CacheEngine
 )

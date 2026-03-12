@@ -13,6 +13,7 @@ func Run() error {
 	SetupLogger()
 	SetupEnt()
 	SetupCache()
+	SetupRedis()
 	SetupKeys()
 	di.SetupDependencies()
 

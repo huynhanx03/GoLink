@@ -2,9 +2,12 @@ package di
 
 import (
 	"go-link/common/pkg/common/cache"
+	"go-link/common/pkg/mq/kafka"
+	"go-link/identity/global"
 	driverHttp "go-link/identity/internal/adapters/driver/http"
 	"go-link/identity/internal/core/service"
 	"go-link/identity/internal/ports"
+	"go-link/identity/pkg/oauth"
 )
 
 // AuthenticationContainer holds authentication dependencies.
@@ -24,9 +27,19 @@ func InitAuthenticationDependencies(
 	resourceRepo ports.ResourceRepository,
 	attrDefinitionRepo ports.AttributeDefinitionRepository,
 	attrValueRepo ports.UserAttributeValueRepository,
+	fedIdentityRepo ports.FederatedIdentityRepository,
 	cache cache.LocalCache[string, any],
 	cacheService ports.CacheService,
+	producer kafka.SyncProducer,
 ) AuthenticationContainer {
+	oauthProviders := map[string]oauth.Provider{
+		"google": oauth.NewGoogleProvider(
+			global.Config.Google.ClientID,
+			global.Config.Google.ClientSecret,
+			global.Config.Google.RedirectURL,
+		),
+	}
+
 	service := service.NewAuthenticationService(
 		userRepo,
 		credentialRepo,
@@ -37,8 +50,11 @@ func InitAuthenticationDependencies(
 		resourceRepo,
 		attrDefinitionRepo,
 		attrValueRepo,
+		fedIdentityRepo,
+		oauthProviders,
 		cache,
 		cacheService,
+		producer,
 	)
 	handler := driverHttp.NewAuthenticationHandler(service)
 
