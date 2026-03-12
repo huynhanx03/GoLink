@@ -6,7 +6,9 @@ use (
 	./Common
 	./Generation
 	./Identity
+	./Notification
 	./Orchestrator
 	./Payment
 	./Redirection
+	./events-contract
 )

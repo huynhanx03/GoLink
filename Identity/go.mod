@@ -8,8 +8,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/google/uuid v1.6.0
 	github.com/huynhanx03/GoLink/events-contract v0.0.0
-	github.com/spf13/viper v1.21.0
-	go-link/common v0.0.0
 	go.uber.org/zap v1.27.1
 	google.golang.org/grpc v1.78.0
 )
